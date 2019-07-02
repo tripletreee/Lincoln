@@ -1,0 +1,7 @@
+##ignore these folders##
+/.vscode/
+
+##ignore these files##
+.classpath
+.project
+.settings
