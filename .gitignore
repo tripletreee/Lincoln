@@ -1,5 +1,7 @@
 ##ignore these folders##
 /.vscode/
+/Debug/
+/.launches/
 
 ##ignore these files##
 .classpath

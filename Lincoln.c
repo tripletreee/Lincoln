@@ -1,22 +1,14 @@
 //###########################################################################
 //
-// FILE:   Example_2806xLEDBlink.c
+// FILE:   Lincoln.c
 //
-// TITLE:  Timer based blinking LED Example
+// TITLE:  Lincoln Racing
 //
-//!  \addtogroup f2806x_example_list
-//!  <h1>Timer based blinking LED(timed_led_blink)</h1>
-//!
-//!  This example configures CPU Timer0 for a 500 msec period, and toggles the 
-//!  GPIO34 LED once per interrupt. For testing purposes, this example
-//!  also increments a counter each time the timer asserts an interrupt.
+//!  This example configures CPU Timer0 for a 0.001s period, and update
+//!  the PID controller output for the gimbal.
 //!
 //!  \b Watch \b Variables \n
 //!  - CpuTimer0.InterruptCount
-//!
-//! \b External \b Connections \n
-//!  Monitor the GPIO34 LED blink on (for 500 msec) and off (for 500 msec) on 
-//!  the 2806x control card.
 //
 //! \b External \b Connections \n
 //!  - EPWM1A is on GPIO0
@@ -37,23 +29,27 @@
 // Defines
 //
 
-#define EPWM3_TIMER_TBPRD   8999       // Configure the period for the timer 10KHz
-#define EPWM3_MAX_CMPA     4500        // Just for test
+#define EPWM1_TIMER_TBPRD   2999       // Configure the period for the timer 30KHz
+#define EPWM2_TIMER_TBPRD   37499     // Configure the PWM period as 300Hz
+#define EPWM1_MAX_CMPA     1500        // Just for test
+#define CONTROL_Ts     0.001       // Control period 0.001s
 
 //
 // Function Prototypes
 //
-//__interrupt void epwm3_timer_isr(void);
-//void InitEPwmTimer(void);
 __interrupt void cpu_timer0_isr(void);
-void InitEPwm3Example(void);
+void InitEPwm1Example(void);
+void InitEPwm2Example(void);
+double gimbal_PID(double target, double current);
 
 //
 // Globals
 //
-Uint32  EPwm3TimerIntCount;     //counts entries into PWM3 Interrupt
-int  PWM_CNT = 1000;
-int  test_param = 4500;
+int  PWM_CNT = 0;
+int  SERVO_CNT = 16875;  //when pulse width = 1.5ms, servo at neutral  left 11250 right 22500
+//int  test_param = 4500;
+double gimbal_error_prev = 0;     // record error from the previous control cycle for the Kd term
+double gimbal_error_integral = 0; // Accumulate the error for the Ki term
 
 //
 // Main
@@ -77,9 +73,9 @@ void main(void)
     // For this case just init GPIO pins for ePWM1, ePWM2, ePWM3
     // These functions are in the F2806x_EPwm.c file
     //
-    //InitEPwm1Gpio();
-    //InitEPwm2Gpio();
-    InitEPwm3Gpio();
+    InitEPwm1Gpio();
+    InitEPwm2Gpio();
+    //InitEPwm3Gpio();
 
     //
     // Step 3. Clear all interrupts and initialize PIE vector table:
@@ -116,8 +112,7 @@ void main(void)
     // ISR functions found within this file.
     //
     EALLOW;    // This is needed to write to EALLOW protected registers
-    PieVectTable.TINT0 = &cpu_timer0_isr;
-    //PieVectTable.EPWM1_INT = &epwm1_timer_isr;
+    PieVectTable.TINT0 = &cpu_timer0_isr; // Start the CPU timer
     EDIS;      // This is needed to disable write to EALLOW protected registers
 
     //
@@ -125,32 +120,22 @@ void main(void)
     //         found in F2806x_CpuTimers.c
     //
     InitCpuTimers();   // For this example, only initialize the Cpu Timers
-    
-    //InitEPwmTimer();    // For this example, only initialize the ePWM Timers
-    InitEPwm3Example();
-
-    //
-    // Initalize counters
-    //
-    EPwm3TimerIntCount = 0;
-
-    //
-    // Enable CPU INT3 which is connected to EPWM1-6 INT
-    //
-    // IER |= M_INT3;
+    InitEPwm1Example();
+    InitEPwm2Example();
 
     //
     // Enable EPWM INTn in the PIE: Group 3 interrupt 1-3
     //
-    PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
-    PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
-    PieCtrlRegs.PIEIER3.bit.INTx3 = 1;
+    //PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
+    //PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
+    //PieCtrlRegs.PIEIER3.bit.INTx3 = 1;
 
     //
     // Configure CPU-Timer 0 to interrupt every 500 milliseconds:
     // 80MHz CPU Freq, 50 millisecond Period (in uSeconds)
     //
-    ConfigCpuTimer(&CpuTimer0, 90, 500000); //0.5s
+    ConfigCpuTimer(&CpuTimer0, 90, 1000000); //1s just for testing
+    //ConfigCpuTimer(&CpuTimer0, 90, CONTROL_Ts*1000000); //Timer period = control period
 
     //
     // To ensure precise timing, use write-only instructions to write to the
@@ -189,128 +174,90 @@ void main(void)
     //
     for(;;);
 }
-/*
-//
-// InitEPwmTimer -
-//
-void
-InitEPwmTimer()
-{
-    EALLOW;
-    SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 0;      // Stop all the TB clocks
-    EDIS;
-
-    //
-    // Setup Sync
-    //
-    EPwm1Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;  // Pass through
-    //EPwm2Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;  // Pass through
-    //EPwm3Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;  // Pass through
-    //EPwm4Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;  // Pass through
-
-    //
-    // Allow each timer to be sync'ed
-    //
-    EPwm1Regs.TBCTL.bit.PHSEN = TB_ENABLE;
-    //EPwm2Regs.TBCTL.bit.PHSEN = TB_ENABLE;
-    //EPwm3Regs.TBCTL.bit.PHSEN = TB_ENABLE;
-    //EPwm4Regs.TBCTL.bit.PHSEN = TB_ENABLE;
-
-    EPwm1Regs.TBPHS.half.TBPHS = PWM_CNT;
-    //EPwm2Regs.TBPHS.half.TBPHS = 200;
-    //EPwm3Regs.TBPHS.half.TBPHS = 300;
-    //EPwm4Regs.TBPHS.half.TBPHS = 400;
-
-    EPwm1Regs.TBPRD = PWM1_TIMER_TBPRD;
-    EPwm1Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP;    // Count up
-    EPwm1Regs.ETSEL.bit.INTSEL = ET_CTR_ZERO;     // Select INT on Zero event
-    EPwm1Regs.ETSEL.bit.INTEN = PWM1_INT_ENABLE;  // Enable INT
-    EPwm1Regs.ETPS.bit.INTPRD = ET_1ST;           // Generate INT on 1st event
-    EPwm1Regs.TBCTL.bit.PRDLD = TB_SHADOW;
-
-    EALLOW;
-    SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 1;       // Start all the timers synced
-    EDIS;
-}*/
 
 //
-// InitEPwm3Example -
+// InitEPwm1Example -
 //
 void
-InitEPwm3Example(void)
+InitEPwm1Example(void)
 {
     //
     // Setup TBCLK
     //
-    EPwm3Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP; // Count up
-    EPwm3Regs.TBPRD = EPWM3_TIMER_TBPRD;       // Set timer period
-    EPwm3Regs.TBCTL.bit.PHSEN = TB_DISABLE;    // Disable phase loading
-    EPwm3Regs.TBPHS.half.TBPHS = 0x0000;       // Phase is 0
-    EPwm3Regs.TBCTR = 0x0000;                  // Clear counter
-    EPwm3Regs.TBCTL.bit.PRDLD = TB_SHADOW;     // Not sure, from the example on the manual
-    EPwm3Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_DISABLE; // Same as above
-    EPwm3Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;   // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
-    EPwm3Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+    EPwm1Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP; // Count up
+    EPwm1Regs.TBPRD = EPWM1_TIMER_TBPRD;       // Set timer period
+    EPwm1Regs.TBCTL.bit.PHSEN = TB_DISABLE;    // Disable phase loading
+    EPwm1Regs.TBPHS.half.TBPHS = 0x0000;       // Phase is 0
+    EPwm1Regs.TBCTR = 0x0000;                  // Clear counter
+    EPwm1Regs.TBCTL.bit.PRDLD = TB_SHADOW;     // Not sure, from the example on the manual
+    EPwm1Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_DISABLE; // Same as above
+    EPwm1Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;   // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
+    EPwm1Regs.TBCTL.bit.CLKDIV = TB_DIV1;
 
     //
     // Setup shadow register load on ZERO
     //
-    EPwm3Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;
-    EPwm3Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
-    EPwm3Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO;
-    EPwm3Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO;
+    EPwm1Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;
+    EPwm1Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+    EPwm1Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO;
+    EPwm1Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO;
 
     //
     // Set Compare values
     //
-    EPwm3Regs.CMPA.half.CMPA = PWM_CNT; // Set compare A value
+    EPwm1Regs.CMPA.half.CMPA = PWM_CNT; // Set compare A value
     // EPwm3Regs.CMPB = EPWM3_MAX_CMPB;           // Set Compare B value
 
     //
     // Set Actions
     //
-    /*EPwm3Regs.AQCTLA.bit.CAU = AQ_SET;    // Set PWM3A on event B, up count
-    EPwm3Regs.AQCTLA.bit.CBU = AQ_CLEAR;  // Clear PWM3A on event B, up count
-
-    EPwm3Regs.AQCTLB.bit.ZRO = AQ_TOGGLE; // Toggle EPWM3B on Zero*/
-    EPwm3Regs.AQCTLA.bit.ZRO = AQ_SET;
-    EPwm3Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm3Regs.AQCTLB.bit.ZRO = AQ_SET;
-    EPwm3Regs.AQCTLB.bit.CBU = AQ_CLEAR;
-
-    //
-    // Interrupt where we will change the Compare Values
-    //
-    /*EPwm3Regs.ETSEL.bit.INTSEL = ET_CTR_ZERO;     // Select INT on Zero event
-    EPwm3Regs.ETSEL.bit.INTEN = 1;                // Enable INT
-    EPwm3Regs.ETPS.bit.INTPRD = ET_3RD;           // Generate INT on 3rd event*/
-
-    //
-    // Start by increasing the compare A and decreasing compare B
-    //
-    //EPwm3Regs.CMPA.Direction = 1;
+    EPwm1Regs.AQCTLA.bit.ZRO = AQ_SET;
+    EPwm1Regs.AQCTLA.bit.CAU = AQ_CLEAR;
+    EPwm1Regs.AQCTLB.bit.ZRO = AQ_SET;
+    EPwm1Regs.AQCTLB.bit.CBU = AQ_CLEAR;
 }
 
-
 //
-// epwm1_timer_isr - Interrupt routines uses in this example
+// InitEPwm1Example -
 //
-/*
-__interrupt void
-epwm1_timer_isr(void)
+void
+InitEPwm2Example(void)
 {
-    EPwm1TimerIntCount++;
+    //
+    // Setup TBCLK
+    //
+    EPwm2Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP; // Count up
+    EPwm2Regs.TBPRD = EPWM2_TIMER_TBPRD;       // Set timer period
+    EPwm2Regs.TBCTL.bit.PHSEN = TB_DISABLE;    // Disable phase loading
+    EPwm2Regs.TBPHS.half.TBPHS = 0x0000;       // Phase is 0
+    EPwm2Regs.TBCTR = 0x0000;                  // Clear counter
+    EPwm2Regs.TBCTL.bit.PRDLD = TB_SHADOW;     // Not sure, from the example on the manual
+    EPwm2Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_DISABLE; // Same as above
+    EPwm2Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;   // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
+    EPwm2Regs.TBCTL.bit.CLKDIV = TB_DIV8;
 
     //
-    // Clear INT flag for this timer
+    // Setup shadow register load on ZERO
     //
-    EPwm1Regs.ETCLR.bit.INT = 1;
+    EPwm2Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;
+    EPwm2Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
+    EPwm2Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO;
+    EPwm2Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO;
 
     //
-    // Acknowledge this interrupt to receive more interrupts from group 3
+    // Set Compare values
     //
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP3;
-}*/
+    EPwm2Regs.CMPA.half.CMPA = SERVO_CNT; // Set compare A value
+    // EPwm3Regs.CMPB = EPWM3_MAX_CMPB;           // Set Compare B value
+
+    //
+    // Set Actions
+    //
+    EPwm2Regs.AQCTLA.bit.ZRO = AQ_SET;
+    EPwm2Regs.AQCTLA.bit.CAU = AQ_CLEAR;
+    EPwm2Regs.AQCTLB.bit.ZRO = AQ_SET;
+    EPwm2Regs.AQCTLB.bit.CBU = AQ_CLEAR;
+}
 
 //
 // cpu_timer0_isr - 
@@ -320,18 +267,43 @@ cpu_timer0_isr(void)
 {
     CpuTimer0.InterruptCount++;
     
-    //
-    // Toggle GPIO34 once per 500 milliseconds
-    //
-    //GpioDataRegs.GPBTOGGLE.bit.GPIO34 = 1;
-    PWM_CNT = PWM_CNT + test_param;
-    test_param = -test_param;
-    EPwm3Regs.CMPA.half.CMPA = PWM_CNT;
+    //PWM_CNT = PWM_CNT + test_param;
+    //test_param = -test_param;
+    //EPwm1Regs.CMPA.half.CMPA = PWM_CNT;
+      EPwm2Regs.CMPA.half.CMPA = SERVO_CNT;
 
     //
     // Acknowledge this interrupt to receive more interrupts from group 1
     //
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+}
+
+
+// Gimbal PID controller
+double gimbal_PID(double target, double current){
+    const double Kp = 1.0;
+    const double Ki = 0.8;
+    const double Kd = 0.0;
+    const double limit_p = 0.5; // Integral anti windup (upper bound)
+    const double limit_n = -0.5; // Integral anti windup (lower bound)
+    double error = 0.0; // velocity error
+    double p_value = 0.0; // Proportional term output
+    double i_value = 0.0; // Integral term output
+    double d_value = 0.0; // Derivative term output
+    double PID_out; // Output value of the controller
+
+    error = target - current;
+    p_value = Kp * error; // Proportional term
+    gimbal_error_integral = gimbal_error_integral + Ki * error * CONTROL_Ts; // Integration in discrete-time
+    i_value = gimbal_error_integral; // Integral term
+    if (i_value >= limit_p) { i_value = limit_p;} // Integral anti windup
+    else if (i_value <= limit_n) { i_value = limit_n;}
+    gimbal_error_integral = i_value;
+    d_value = Kd * (error - gimbal_error_prev)/CONTROL_Ts; // Derivative term
+    gimbal_error_prev = error; // record the error value for next cycle
+    PID_out = p_value + i_value + d_value;
+
+    return PID_out;
 }
 
 //
