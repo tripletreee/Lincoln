@@ -3,4 +3,5 @@
 <projectOptions>
 	<deviceFamily value="C2000"/>
 	<isTargetManual value="false"/>
+	<connection value="common/targetdb/connections/TIXDS100v2_Connection.xml"/>
 </projectOptions>

@@ -4,7 +4,7 @@
 //
 // TITLE:  Lincoln Racing
 //
-//!  This example configures CPU Timer0 for a 0.001s period, and update
+//!  This project configures CPU Timer0 for a 0.001s period, and update
 //!  the PID controller output for the gimbal.
 //!
 //!  \b Watch \b Variables \n
@@ -24,13 +24,14 @@
 // Included Files
 //
 #include "DSP28x_Project.h"     // Device Headerfile and Examples Include File
+#include "include/main.h"
+
 
 //
 // Defines
 //
 
-#define EPWM1_TIMER_TBPRD   2999       // Configure the period for the timer 30KHz
-#define EPWM2_TIMER_TBPRD   37499     // Configure the PWM period as 300Hz
+
 #define EPWM1_MAX_CMPA     1500        // Just for test
 #define CONTROL_Ts     0.001       // Control period 0.001s
 
@@ -38,8 +39,6 @@
 // Function Prototypes
 //
 __interrupt void cpu_timer0_isr(void);
-void InitEPwm1Example(void);
-void InitEPwm2Example(void);
 double gimbal_PID(double target, double current);
 
 //
@@ -68,14 +67,7 @@ void main(void)
     // This example function is found in the F2806x_Gpio.c file and
     // illustrates how to set the GPIO to it's default state.
     //
-    // InitGpio();  // Skipped for this example
-    //
-    // For this case just init GPIO pins for ePWM1, ePWM2, ePWM3
-    // These functions are in the F2806x_EPwm.c file
-    //
-    InitEPwm1Gpio();
-    InitEPwm2Gpio();
-    //InitEPwm3Gpio();
+    Init_GPIO();  // Initialize the GPIO
 
     //
     // Step 3. Clear all interrupts and initialize PIE vector table:
@@ -119,9 +111,9 @@ void main(void)
     // Step 4. Initialize the Device Peripheral. This function can be
     //         found in F2806x_CpuTimers.c
     //
-    InitCpuTimers();   // For this example, only initialize the Cpu Timers
-    InitEPwm1Example();
-    InitEPwm2Example();
+    InitCpuTimers();   // Initialize the Cpu Timers
+    InitEPwms();    // Initialize the ePWM modules
+
 
     //
     // Enable EPWM INTn in the PIE: Group 3 interrupt 1-3
@@ -175,102 +167,18 @@ void main(void)
     for(;;);
 }
 
-//
-// InitEPwm1Example -
-//
-void
-InitEPwm1Example(void)
-{
-    //
-    // Setup TBCLK
-    //
-    EPwm1Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP; // Count up
-    EPwm1Regs.TBPRD = EPWM1_TIMER_TBPRD;       // Set timer period
-    EPwm1Regs.TBCTL.bit.PHSEN = TB_DISABLE;    // Disable phase loading
-    EPwm1Regs.TBPHS.half.TBPHS = 0x0000;       // Phase is 0
-    EPwm1Regs.TBCTR = 0x0000;                  // Clear counter
-    EPwm1Regs.TBCTL.bit.PRDLD = TB_SHADOW;     // Not sure, from the example on the manual
-    EPwm1Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_DISABLE; // Same as above
-    EPwm1Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;   // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
-    EPwm1Regs.TBCTL.bit.CLKDIV = TB_DIV1;
-
-    //
-    // Setup shadow register load on ZERO
-    //
-    EPwm1Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;
-    EPwm1Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
-    EPwm1Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO;
-    EPwm1Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO;
-
-    //
-    // Set Compare values
-    //
-    EPwm1Regs.CMPA.half.CMPA = PWM_CNT; // Set compare A value
-    // EPwm3Regs.CMPB = EPWM3_MAX_CMPB;           // Set Compare B value
-
-    //
-    // Set Actions
-    //
-    EPwm1Regs.AQCTLA.bit.ZRO = AQ_SET;
-    EPwm1Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm1Regs.AQCTLB.bit.ZRO = AQ_SET;
-    EPwm1Regs.AQCTLB.bit.CBU = AQ_CLEAR;
-}
-
-//
-// InitEPwm1Example -
-//
-void
-InitEPwm2Example(void)
-{
-    //
-    // Setup TBCLK
-    //
-    EPwm2Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP; // Count up
-    EPwm2Regs.TBPRD = EPWM2_TIMER_TBPRD;       // Set timer period
-    EPwm2Regs.TBCTL.bit.PHSEN = TB_DISABLE;    // Disable phase loading
-    EPwm2Regs.TBPHS.half.TBPHS = 0x0000;       // Phase is 0
-    EPwm2Regs.TBCTR = 0x0000;                  // Clear counter
-    EPwm2Regs.TBCTL.bit.PRDLD = TB_SHADOW;     // Not sure, from the example on the manual
-    EPwm2Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_DISABLE; // Same as above
-    EPwm2Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;   // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
-    EPwm2Regs.TBCTL.bit.CLKDIV = TB_DIV8;
-
-    //
-    // Setup shadow register load on ZERO
-    //
-    EPwm2Regs.CMPCTL.bit.SHDWAMODE = CC_SHADOW;
-    EPwm2Regs.CMPCTL.bit.SHDWBMODE = CC_SHADOW;
-    EPwm2Regs.CMPCTL.bit.LOADAMODE = CC_CTR_ZERO;
-    EPwm2Regs.CMPCTL.bit.LOADBMODE = CC_CTR_ZERO;
-
-    //
-    // Set Compare values
-    //
-    EPwm2Regs.CMPA.half.CMPA = SERVO_CNT; // Set compare A value
-    // EPwm3Regs.CMPB = EPWM3_MAX_CMPB;           // Set Compare B value
-
-    //
-    // Set Actions
-    //
-    EPwm2Regs.AQCTLA.bit.ZRO = AQ_SET;
-    EPwm2Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm2Regs.AQCTLB.bit.ZRO = AQ_SET;
-    EPwm2Regs.AQCTLB.bit.CBU = AQ_CLEAR;
-}
 
 //
 // cpu_timer0_isr - 
 //
-__interrupt void
-cpu_timer0_isr(void)
+__interrupt void cpu_timer0_isr(void)
 {
     CpuTimer0.InterruptCount++;
     
     //PWM_CNT = PWM_CNT + test_param;
     //test_param = -test_param;
-    //EPwm1Regs.CMPA.half.CMPA = PWM_CNT;
-      EPwm2Regs.CMPA.half.CMPA = SERVO_CNT;
+    EPwm1Regs.CMPA.half.CMPA = PWM_CNT;
+    EPwm2Regs.CMPA.half.CMPA = SERVO_CNT;
 
     //
     // Acknowledge this interrupt to receive more interrupts from group 1

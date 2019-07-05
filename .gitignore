@@ -1,11 +1,9 @@
 ##ignore these folders##
 /.vscode/
-/Debug/
 /.launches/
+/Debug/
 
 ##ignore these files##
 .classpath
-.project
 .settings
-.cproject
 .DS_Store
