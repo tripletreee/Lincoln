@@ -4,26 +4,15 @@
 //
 // TITLE:  Lincoln Racing
 //
-//!  This project configures CPU Timer0 for a 0.001s period, and update
+//!  This project is for the control part of an autonomous driving vehicle.
 //!  the PID controller output for the gimbal.
-//!
-//!  \b Watch \b Variables \n
-//!  - CpuTimer0.InterruptCount
-//
-//! \b External \b Connections \n
-//!  - EPWM1A is on GPIO0
-//!  - EPWM1B is on GPIO1
-//!  - EPWM2A is on GPIO2
-//!  - EPWM2B is on GPIO3
-//!  - EPWM3A is on GPIO4
-//!  - EPWM3B is on GPIO5
 //
 //###########################################################################
 
 //
 // Included Files
 //
-#include "DSP28x_Project.h"     // Device Headerfile and Examples Include File
+
 #include "include/main.h"
 
 
@@ -38,7 +27,7 @@
 //
 // Function Prototypes
 //
-__interrupt void cpu_timer0_isr(void);
+
 double gimbal_PID(double target, double current);
 
 //
@@ -55,24 +44,16 @@ double gimbal_error_integral = 0; // Accumulate the error for the Ki term
 //
 void main(void)
 {
-    //
     // Step 1. Initialize System Control:
     // PLL, WatchDog, enable Peripheral Clocks
     // This example function is found in the F2806x_SysCtrl.c file.
-    //
     InitSysCtrl();
 
-    //
     // Step 2. Initalize GPIO:
-    // This example function is found in the F2806x_Gpio.c file and
-    // illustrates how to set the GPIO to it's default state.
-    //
     Init_GPIO();  // Initialize the GPIO
 
-    //
     // Step 3. Clear all interrupts and initialize PIE vector table:
     // Disable CPU interrupts
-    //
     DINT;
 
     //
@@ -115,16 +96,8 @@ void main(void)
     InitEPwms();    // Initialize the ePWM modules
 
 
-    //
-    // Enable EPWM INTn in the PIE: Group 3 interrupt 1-3
-    //
-    //PieCtrlRegs.PIEIER3.bit.INTx1 = 1;
-    //PieCtrlRegs.PIEIER3.bit.INTx2 = 1;
-    //PieCtrlRegs.PIEIER3.bit.INTx3 = 1;
-
-    //
     // Configure CPU-Timer 0 to interrupt every 500 milliseconds:
-    // 80MHz CPU Freq, 50 millisecond Period (in uSeconds)
+    // 90MHz CPU Freq, 50 millisecond Period (in uSeconds)
     //
     ConfigCpuTimer(&CpuTimer0, 90, 1000000); //1s just for testing
     //ConfigCpuTimer(&CpuTimer0, 90, CONTROL_Ts*1000000); //Timer period = control period
@@ -169,7 +142,7 @@ void main(void)
 
 
 //
-// cpu_timer0_isr - 
+// cpu_timer0_isr
 //
 __interrupt void cpu_timer0_isr(void)
 {
