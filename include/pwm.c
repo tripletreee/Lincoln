@@ -6,7 +6,7 @@
 //
 // InitEPwm1
 //
-void InitEPwm1(void)
+void Init_ePWM1(void)
 {
     //
     // Setup TBCLK
@@ -33,7 +33,6 @@ void InitEPwm1(void)
     // Set Compare values
     //
     EPwm1Regs.CMPA.half.CMPA = 0; // Set compare A value
-    // EPwm3Regs.CMPB = EPWM3_MAX_CMPB;           // Set Compare B value
 
     //
     // Set Actions
@@ -47,7 +46,7 @@ void InitEPwm1(void)
 //
 // InitEPwm2
 //
-void InitEPwm2(void)
+void Init_ePWM2(void)
 {
     //
     // Setup TBCLK
@@ -74,7 +73,6 @@ void InitEPwm2(void)
     // Set Compare values
     //
     EPwm2Regs.CMPA.half.CMPA = 0; // Set compare A value
-    // EPwm3Regs.CMPB = EPWM3_MAX_CMPB;           // Set Compare B value
 
     //
     // Set Actions
@@ -85,8 +83,8 @@ void InitEPwm2(void)
     EPwm2Regs.AQCTLB.bit.CBU = AQ_CLEAR;
 }
 
-void InitEPwms(void)
+void Init_ePWMs(void)
 {
-    InitEPwm1();
-    InitEPwm2();
+    Init_ePWM1();
+    Init_ePWM2();
 }

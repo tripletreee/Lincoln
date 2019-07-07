@@ -4,11 +4,11 @@
 #include "F2806x_Device.h"     // F2806x Headerfile Include File
 #include "F2806x_Examples.h"
 
-void InitEPwms(void);
+void Init_ePWMs(void);
 
-void InitEPwm1(void);
+void Init_ePWM1(void);
 
-void InitEPwm2(void);
+void Init_ePWM2(void);
 
 
 
