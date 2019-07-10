@@ -20,12 +20,14 @@ int  SERVO_CNT = 16875;  //when pulse width = 1.5ms, servo at neutral  left 1125
 
 int32 ecap1_t1 = 0;
 int32 ecap1_t2 = 0;
+float encoder_motor_position = 0;
 
 int32 ecap2_t1 = 0;
 int32 ecap2_t2 = 0;
 
 int32 ecap3_t1 = 0;
 int32 ecap3_t2 = 0;
+float encoder_gimbal_position = 0;
 
 // system state machine
 // 0: Initial
@@ -59,6 +61,8 @@ __interrupt void cpu_timer0_isr(void)
     ecap2_t2 = ECap2Regs.CAP2;
     ecap3_t1 = ECap3Regs.CAP1;
     ecap3_t2 = ECap3Regs.CAP2;
+    encoder_motor_position = ((float)ecap1_t1 / (float)ecap1_t2)*4119 - 24;
+    encoder_gimbal_position = ((float)ecap3_t1 / (float)ecap3_t2)*4119 - 24;
 
     // Acknowledge this interrupt to receive more interrupts from group 1
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
