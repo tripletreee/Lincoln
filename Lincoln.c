@@ -16,7 +16,7 @@ int16 command_servo_angle = 0;
 int16 command_gimbal_angle = 0;
 
 int  PWM_CNT = 150;
-int  SERVO_CNT = 16875;  //when pulse width = 1.5ms, servo at neutral  left 11250 right 22500
+int  SERVO_CNT = 17250;  //when pulse width = 1.5ms, servo at neutral(16875 + 375offset)  left 11250 right 22500
 
 int32 ecap1_t1 = 0;
 int32 ecap1_t2 = 0;
