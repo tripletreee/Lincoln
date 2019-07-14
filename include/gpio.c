@@ -10,6 +10,10 @@ void Init_GPIO(void)
     GpioCtrlRegs.GPAPUD.bit.GPIO2 = 1;    // Disable pull-up on GPIO2 (EPWM2A)
     GpioCtrlRegs.GPAMUX1.bit.GPIO2 = 1;   // Configure GPIO2 as EPWM2A
 
+    GpioCtrlRegs.GPAMUX1.bit.GPIO12 = 0;  // Configure GPIO12 as GPIO (TP2)
+    GpioCtrlRegs.GPADIR.bit.GPIO12 = 1;   // GPIO12 = output
+    GpioDataRegs.GPASET.bit.GPIO12 = 0;   // output set low
+
     GpioCtrlRegs.GPAMUX2.bit.GPIO21 = 0;  // Configure GPIO21 as GPIO
     GpioCtrlRegs.GPADIR.bit.GPIO21 = 1;   // GPIO21 = output
     GpioDataRegs.GPASET.bit.GPIO21 = 0;   // output set low (front: low; back: high)

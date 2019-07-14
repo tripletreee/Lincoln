@@ -1,33 +1,37 @@
 #include "pid.h"
 
 
+void PID_Control(PID_Handle handle , float target, float feedback)
+{
 
-// Gimbal PID controller
-float control_PID(float target, float current){
-    const double Kp = 1.0;
-    const double Ki = 0.8;
-    const double Kd = 0.0;
-    const double limit_p = 0.5; // Integral anti windup (upper bound)
-    const double limit_n = -0.5; // Integral anti windup (lower bound)
-    double error = 0.0; // velocity error
-    double p_value = 0.0; // Proportional term output
-    double i_value = 0.0; // Integral term output
-    double d_value = 0.0; // Derivative term output
-    double PID_out; // Output value of the controller
-    double gimbal_error_prev = 0;     // record error from the previous control cycle for the Kd term
-    double gimbal_error_integral = 0; // Accumulate the error for the Ki term
-    int CONTROL_Ts=0;
+    PID_Obj *PID_obj = (PID_Obj *)handle;
 
-    error = target - current;
-    p_value = Kp * error; // Proportional term
-    gimbal_error_integral = gimbal_error_integral + Ki * error * CONTROL_Ts; // Integration in discrete-time
-    i_value = gimbal_error_integral; // Integral term
-    if (i_value >= limit_p) { i_value = limit_p;} // Integral anti windup
-    else if (i_value <= limit_n) { i_value = limit_n;}
-    gimbal_error_integral = i_value;
-    d_value = Kd * (error - gimbal_error_prev)/CONTROL_Ts; // Derivative term
-    gimbal_error_prev = error; // record the error value for next cycle
-    PID_out = p_value + i_value + d_value;
+    float error;
+    float p_term;
+    float i_term;
+    float d_term;
+    float output;
 
-    return PID_out;
+    error = target - feedback;
+
+    p_term = PID_obj->Kp * error;                          // Proportional term
+    i_term = PID_obj->Ki * error + PID_obj->errorIntegral; // Integral term
+    d_term = PID_obj->Kd * (error - PID_obj->errorPrev);   // Derivative term
+
+    if (i_term >= PID_obj->integralMax) { i_term = PID_obj->integralMax;} // Integral Max
+    else if (i_term <= PID_obj->integralMin) { i_term = PID_obj->integralMin;} // Integral Min
+
+    PID_obj->errorIntegral = i_term;   // update the integral value
+    PID_obj->errorPrev = error;         // update the previous error
+
+    output = p_term + i_term + d_term;
+
+    if(output >= PID_obj->outMax) { output = PID_obj->outMax;}      // Limit out max
+    else if(output <= PID_obj->outMin) { output = PID_obj->outMin;} // Limit out min
+
+    PID_obj->outputPre = PID_obj->output;
+    PID_obj->output = output*0.5 + PID_obj->outputPre*0.5;
+    PID_obj->outputInt = (Uint16) abs(PID_obj->output);
 }
+
+

@@ -10,6 +10,7 @@
 
 
 __interrupt void cpu_timer0_isr(void);
+__interrupt void ecap1_isr(void);
 
 inline void Init_PIE_Vector_Table(void){
     
@@ -44,6 +45,7 @@ inline void Init_PIE_Vector_Table(void){
     //
     EALLOW;    // This is needed to write to EALLOW protected registers
     PieVectTable.TINT0 = &cpu_timer0_isr; // Start the CPU timer
+    PieVectTable.ECAP1_INT = &ecap1_isr;
     EDIS;      // This is needed to disable write to EALLOW protected registers
 }
 
@@ -54,9 +56,19 @@ inline void Enable_interrupts(void){
     IER |= M_INT1;
 
     //
+    // Enable CPU INT4 which is connected to ECAP1-4 INT
+    //
+    IER |= M_INT4;
+
+    //
     // Enable TINT0 in the PIE: Group 1 interrupt 7
     //
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
+
+    //
+    // Enable eCAP INTn in the PIE: Group 3 interrupt 1-6
+    //
+    PieCtrlRegs.PIEIER4.bit.INTx1 = 1;
 
     //
     // Enable global Interrupts and higher priority real-time debug events

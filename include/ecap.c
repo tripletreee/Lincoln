@@ -29,7 +29,7 @@ void Init_eCAP1(void){
     ECap1Regs.ECCTL2.bit.TSCTRSTOP = 1;     // Start Counter
     ECap1Regs.ECCTL2.bit.REARM = 1;         // arm one-shot
     ECap1Regs.ECCTL1.bit.CAPLDEN = 1;       // Enable CAP1-CAP4 register loads
-    //ECap1Regs.ECEINT.bit.CEVT4 = 1;         // 4 events = interrupt
+    ECap1Regs.ECEINT.bit.CEVT2 = 1;         // 2 events = interrupt
 }
 
 void Init_eCAP2(void){
