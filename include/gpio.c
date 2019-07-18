@@ -48,6 +48,10 @@ void Init_GPIO(void)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO26 = 0; // Synch to SYSCLKOUT GPIO26 (CAP3)
     GpioCtrlRegs.GPAMUX2.bit.GPIO26 = 1;    // Configure GPIO26 as CAP3
 
+    GpioCtrlRegs.GPBMUX2.bit.GPIO50 = 0;  // Configure GPIO50 as GPIO
+    GpioCtrlRegs.GPBDIR.bit.GPIO50 = 1;   // GPIO50 = output
+    GpioDataRegs.GPBSET.bit.GPIO50 = 1;   // output set high (enable drv8305)
+
     EDIS;
 }
 

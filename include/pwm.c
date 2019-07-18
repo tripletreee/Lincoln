@@ -1,11 +1,6 @@
 #include "pwm.h"
 
-#define EPWM1_TIMER_TBPRD   2999      // Configure the period for the timer 30KHz
-#define EPWM2_TIMER_TBPRD   37499     // Configure the PWM period as 300Hz
 
-#define EPWM4_TIMER_TBPRD   2999      // Configure the period for the timer 30KHz
-#define EPWM5_TIMER_TBPRD   2999      // Configure the period for the timer 30KHz
-#define EPWM6_TIMER_TBPRD   2999      // Configure the period for the timer 30KHz
 
 //
 // InitEPwm1

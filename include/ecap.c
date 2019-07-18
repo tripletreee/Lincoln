@@ -27,7 +27,7 @@ void Init_eCAP1(void){
     ECap1Regs.ECCTL2.bit.SYNCO_SEL = 0;     // Pass through
 
     ECap1Regs.ECCTL2.bit.TSCTRSTOP = 1;     // Start Counter
-    ECap1Regs.ECCTL2.bit.REARM = 1;         // arm one-shot
+    //ECap1Regs.ECCTL2.bit.REARM = 1;         // arm one-shot
     ECap1Regs.ECCTL1.bit.CAPLDEN = 1;       // Enable CAP1-CAP4 register loads
     ECap1Regs.ECEINT.bit.CEVT2 = 1;         // 2 events = interrupt
 }
@@ -59,7 +59,7 @@ void Init_eCAP2(void){
     ECap2Regs.ECCTL2.bit.SYNCO_SEL = 0;     // Pass through
 
     ECap2Regs.ECCTL2.bit.TSCTRSTOP = 1;     // Start Counter
-    ECap2Regs.ECCTL2.bit.REARM = 1;         // arm one-shot
+    //ECap2Regs.ECCTL2.bit.REARM = 1;         // arm one-shot
     ECap2Regs.ECCTL1.bit.CAPLDEN = 1;       // Enable CAP1-CAP4 register loads
     //ECap2Regs.ECEINT.bit.CEVT4 = 1;         // 4 events = interrupt
 }
@@ -91,9 +91,9 @@ void Init_eCAP3(void){
     ECap3Regs.ECCTL2.bit.SYNCO_SEL = 0;     // Pass through
 
     ECap3Regs.ECCTL2.bit.TSCTRSTOP = 1;     // Start Counter
-    ECap3Regs.ECCTL2.bit.REARM = 1;         // arm one-shot
+    //ECap3Regs.ECCTL2.bit.REARM = 1;         // arm one-shot
     ECap3Regs.ECCTL1.bit.CAPLDEN = 1;       // Enable CAP1-CAP4 register loads
-    //ECap3Regs.ECEINT.bit.CEVT4 = 1;         // 4 events = interrupt
+    ECap3Regs.ECEINT.bit.CEVT2 = 1;         // 2 events = interrupt
 }
 
 void Init_eCAPs(void){
