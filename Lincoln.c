@@ -100,7 +100,7 @@ __interrupt void ecap1_isr(void)
 
     ECap1Regs.ECCLR.bit.CEVT2 = 1;
     ECap1Regs.ECCLR.bit.INT = 1;
-    ECap1Regs.ECCTL2.bit.REARM = 1;
+    //ECap1Regs.ECCTL2.bit.REARM = 1;
 
     int32 ecap1_t1;
     int32 ecap1_t2;
@@ -111,7 +111,7 @@ __interrupt void ecap1_isr(void)
     duty_count = ((float)ecap1_t1 / (float)ecap1_t2)*4119;
 
 
-    //EPwm1Regs.CMPA.half.CMPA = PWM_CNT;
+    EPwm1Regs.CMPA.half.CMPA = PWM_CNT;
 
     if(duty_count > 14){ // if this is a valid frame
 
@@ -139,7 +139,7 @@ __interrupt void ecap1_isr(void)
 
         PID_Control(PID_Motor_Handle, command_motor_speed, measured_motor_speed);
 
-        EPwm1Regs.CMPA.half.CMPA = PID_Motor.outputInt;
+        //EPwm1Regs.CMPA.half.CMPA = PID_Motor.outputInt;
     }
 
 
