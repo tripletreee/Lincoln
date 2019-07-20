@@ -17,7 +17,7 @@ Uint16 command_gimbal_position = 2645;     // gimbal angle command: [3480,1820]
 
 int16  shadow_motor_speed = 0;         // motor speed command: [0,1000]
 Uint16 shadow_servo_position = 17250;     // servo angle command: [12000,22500]
-Uint16 shadow_gimbal_position = 2645;     // gimbal angle command: [3480,1820]
+Uint16 shadow_gimbal_position = 2680;     // gimbal angle command: [3480,1820]
 int  PWM_CNT = 0;
 int  SERVO_CNT = 17250;  //when pulse width = 1.5ms, servo at neutral(16875 + 375offset)  left 11250 right 22500
 
@@ -34,7 +34,7 @@ PID_Obj PID_Motor = {6, 0.5, 0, 1500, -100, 0, 0, 1500, 0, 0, 0, 0};
 PID_Handle PID_Motor_Handle = &PID_Motor;
 
 //PID_Obj PID_Gimbal = {25, 3, 300, 800, -800, 0, 0, 3000, -3000, 0, 0, 0};
-PID_Obj PID_Gimbal = {20, 3, 180, 800, -800, 0, 0, 3000, -3000, 0, 0, 0};
+PID_Obj PID_Gimbal = {20, 2, 240, 800, -800, 0, 0, 3000, -3000, 0, 0, 0};
 PID_Handle PID_Gimbal_Handle = &PID_Gimbal;
 
 
@@ -96,36 +96,20 @@ __interrupt void cpu_timer0_isr(void)
 
 
 // Motor ISR
-__interrupt void ecap1_isr(void)
-{
-
-    // Re-enable the interrupt
-    ECap1Regs.ECCLR.bit.INT = 1;
-
-    // Re-enable the event 2 interrupt
-    ECap1Regs.ECCLR.bit.CEVT2 = 1;
-
+__interrupt void ecap1_isr(void){
     int32 ecap1_t1;
     int32 ecap1_t2;
     float duty_count;
 
-
     ecap1_t1 = ECap1Regs.CAP1;
     ecap1_t2 = ECap1Regs.CAP2;
-
 
     //EPwm1Regs.CMPA.half.CMPA = PWM_CNT;
 
     duty_count = ((float)ecap1_t1 / (float)ecap1_t2)*4119;
 
+    if(duty_count > 15 && duty_count < 4112){ // if this is a valid frame
 
-
-    if(duty_count > 15 ){ // if this is a valid frame
-        test = (int) duty_count;
-        test1 = test2;
-        test2 = test;
-        test3 = test2 - test1;
-/*
         encoder_motor_position_pre = encoder_motor_position;
 
         encoder_motor_position = duty_count - 16;
@@ -139,7 +123,6 @@ __interrupt void ecap1_isr(void)
         if( abs(encoder_motor_position - encoder_motor_position_pre ) < 2000)
         {
             measured_motor_speed = encoder_motor_position_pre - encoder_motor_position;
-
         }
         else
         {
@@ -151,26 +134,27 @@ __interrupt void ecap1_isr(void)
                 measured_motor_speed = encoder_motor_position_pre - 4096 - encoder_motor_position;
             }
         }
-        //measured_motor_speed = measured_motor_speed *0.9 + measured_motor_speed_pre*0.1;
+        measured_motor_speed = measured_motor_speed *0.7 + measured_motor_speed_pre*0.3;
 
         PID_Control(PID_Motor_Handle, command_motor_speed, measured_motor_speed);
 
-        //EPwm1Regs.CMPA.half.CMPA = PID_Motor.outputInt;
-         *
-         */
+        EPwm1Regs.CMPA.half.CMPA = PID_Motor.outputInt;
     }
-    /*
     else{
         encoder_motor_position_pre = encoder_motor_position;
         encoder_motor_position = encoder_motor_position + measured_motor_speed;
     }
-    */
+
+    // Re-enable the event 2 interrupt
+    ECap1Regs.ECCLR.bit.CEVT2 = 1;
+    // Re-enable the interrupt
+    ECap1Regs.ECCLR.bit.INT = 1;
+
 
     //
     // Acknowledge this interrupt to receive more interrupts from group 4
     //
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP4;
-
 }
 
 
@@ -191,7 +175,7 @@ __interrupt void ecap3_isr(void){
 
     duty_count = ((float)ecap3_t1 / (float)ecap3_t2)*4119;
 
-    if(duty_count > 15){
+    if(duty_count > 15 && duty_count < 4112){
 
         encoder_gimbal_position_pre = encoder_gimbal_position;
 
