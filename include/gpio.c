@@ -13,6 +13,24 @@ void Init_GPIO(void)
     GpioCtrlRegs.GPAMUX1.bit.GPIO12 = 0;  // Configure GPIO12 as GPIO (TP2)
     GpioCtrlRegs.GPADIR.bit.GPIO12 = 1;   // GPIO12 = output
     GpioDataRegs.GPASET.bit.GPIO12 = 0;   // output set low
+    
+    GpioCtrlRegs.GPAPUD.bit.GPIO6 = 1;    // Disable pull-up on GPIO6 (EPWM4A)
+    GpioCtrlRegs.GPAMUX1.bit.GPIO6 = 1;   // Configure GPIO6 as EPWM4A
+
+    GpioCtrlRegs.GPAPUD.bit.GPIO7 = 1;    // Disable pull-up on GPIO7 (EPWM4B)
+    GpioCtrlRegs.GPAMUX1.bit.GPIO7 = 1;   // Configure GPIO7 as EPWM4B
+
+    GpioCtrlRegs.GPAPUD.bit.GPIO8 = 1;    // Disable pull-up on GPIO8 (EPWM5A)
+    GpioCtrlRegs.GPAMUX1.bit.GPIO8 = 1;   // Configure GPIO8 as EPWM5A
+
+    GpioCtrlRegs.GPAPUD.bit.GPIO9 = 1;    // Disable pull-up on GPIO9 (EPWM5B)
+    GpioCtrlRegs.GPAMUX1.bit.GPIO9 = 1;   // Configure GPIO0 as EPWM5B
+
+    GpioCtrlRegs.GPAPUD.bit.GPIO10 = 1;    // Disable pull-up on GPIO10 (EPWM6A)
+    GpioCtrlRegs.GPAMUX1.bit.GPIO10 = 1;   // Configure GPIO10 as EPWM6A
+
+    GpioCtrlRegs.GPAPUD.bit.GPIO11 = 1;    // Disable pull-up on GPIO11 (EPWM6B)
+    GpioCtrlRegs.GPAMUX1.bit.GPIO11 = 1;   // Configure GPIO11 as EPWM6B
 
     GpioCtrlRegs.GPAMUX2.bit.GPIO21 = 0;  // Configure GPIO21 as GPIO
     GpioCtrlRegs.GPADIR.bit.GPIO21 = 1;   // GPIO21 = output
@@ -29,6 +47,10 @@ void Init_GPIO(void)
     GpioCtrlRegs.GPAPUD.bit.GPIO26 = 0;    // Enable pull-up on GPIO26 (CAP3)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO26 = 0; // Synch to SYSCLKOUT GPIO26 (CAP3)
     GpioCtrlRegs.GPAMUX2.bit.GPIO26 = 1;    // Configure GPIO26 as CAP3
+
+    GpioCtrlRegs.GPBMUX2.bit.GPIO50 = 0;  // Configure GPIO50 as GPIO
+    GpioCtrlRegs.GPBDIR.bit.GPIO50 = 1;   // GPIO50 = output
+    GpioDataRegs.GPBSET.bit.GPIO50 = 1;   // output set high (enable drv8305)
 
     EDIS;
 }

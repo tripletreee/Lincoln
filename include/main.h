@@ -7,10 +7,12 @@
 #include "pwm.h"
 #include "pid.h"
 #include "ecap.h"
+#include "bldc.h"
 
 
 __interrupt void cpu_timer0_isr(void);
 __interrupt void ecap1_isr(void);
+__interrupt void ecap3_isr(void);
 
 inline void Init_PIE_Vector_Table(void){
     
@@ -46,6 +48,7 @@ inline void Init_PIE_Vector_Table(void){
     EALLOW;    // This is needed to write to EALLOW protected registers
     PieVectTable.TINT0 = &cpu_timer0_isr; // Start the CPU timer
     PieVectTable.ECAP1_INT = &ecap1_isr;
+    PieVectTable.ECAP3_INT = &ecap3_isr;
     EDIS;      // This is needed to disable write to EALLOW protected registers
 }
 
@@ -69,6 +72,7 @@ inline void Enable_interrupts(void){
     // Enable eCAP INTn in the PIE: Group 3 interrupt 1-6
     //
     PieCtrlRegs.PIEIER4.bit.INTx1 = 1;
+    PieCtrlRegs.PIEIER4.bit.INTx3 = 1;
 
     //
     // Enable global Interrupts and higher priority real-time debug events
