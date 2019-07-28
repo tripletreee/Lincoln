@@ -163,19 +163,20 @@ void main(void)
     MessageReceivedCount = 0;
     ErrorCount = 0;
     PassCount = 0;
+    testCount = 0;
 
     InitECana();            // Initialize eCAN-A module
 
     /* Zero out (or initialize) the entire MBX RAM area */
 
-   // MBXwrA();
+    MBXwrA();
 
     //
     // Mailboxs can be written to 16-bits or 32-bits at a time
     // Write to the MSGID field of TRANSMIT mailboxes MBOX0 - 15
     //
     ECanaMboxes.MBOX0.MSGID.all = 0x9555AAA0;
-    ECanaMboxes.MBOX1.MSGID.all = 0x9555AAA1;
+    /*ECanaMboxes.MBOX1.MSGID.all = 0x9555AAA1;
     ECanaMboxes.MBOX2.MSGID.all = 0x9555AAA2;
     ECanaMboxes.MBOX3.MSGID.all = 0x9555AAA3;
     ECanaMboxes.MBOX4.MSGID.all = 0x9555AAA4;
@@ -189,14 +190,14 @@ void main(void)
     ECanaMboxes.MBOX12.MSGID.all = 0x9555AAAC;
     ECanaMboxes.MBOX13.MSGID.all = 0x9555AAAD;
     ECanaMboxes.MBOX14.MSGID.all = 0x9555AAAE;
-    ECanaMboxes.MBOX15.MSGID.all = 0x9555AAAF;
+    ECanaMboxes.MBOX15.MSGID.all = 0x9555AAAF;*/
 
 
     //
     // Write to the MSGID field of RECEIVE mailboxes MBOX16 - 31
     //
     ECanaMboxes.MBOX16.MSGID.all = 0x9555AAA0;
-    ECanaMboxes.MBOX17.MSGID.all = 0x9555AAA1;
+    /*ECanaMboxes.MBOX17.MSGID.all = 0x9555AAA1;
     ECanaMboxes.MBOX18.MSGID.all = 0x9555AAA2;
     ECanaMboxes.MBOX19.MSGID.all = 0x9555AAA3;
     ECanaMboxes.MBOX20.MSGID.all = 0x9555AAA4;
@@ -210,7 +211,7 @@ void main(void)
     ECanaMboxes.MBOX28.MSGID.all = 0x9555AAAC;
     ECanaMboxes.MBOX29.MSGID.all = 0x9555AAAD;
     ECanaMboxes.MBOX30.MSGID.all = 0x9555AAAE;
-    ECanaMboxes.MBOX31.MSGID.all = 0x9555AAAF;
+    ECanaMboxes.MBOX31.MSGID.all = 0x9555AAAF;*/
 
 
     //
@@ -218,24 +219,40 @@ void main(void)
     //// Since this write is to the entire register (instead of a bit
     //// field) a shadow register is not required.
     //
-    ECanaShadow.CANMD.all = ECanaRegs.CANMD.all;
+    /*ECanaShadow.CANMD.all = ECanaRegs.CANMD.all;
     ECanaShadow.CANMD.all = 0xFFFF0000;
+    ECanaRegs.CANMD.all = ECanaShadow.CANMD.all;*/
+    ECanaShadow.CANMD.all = ECanaRegs.CANMD.all;
+    ECanaShadow.CANMD.bit.MD0 = 0;
     ECanaRegs.CANMD.all = ECanaShadow.CANMD.all;
+
+    ECanaShadow.CANMD.all = ECanaRegs.CANMD.all;
+    ECanaShadow.CANMD.bit.MD16 = 1;
+    ECanaRegs.CANMD.all = ECanaShadow.CANMD.all;
+
 
     //
     // Enable all Mailboxes
     //// Since this write is to the entire register (instead of a bit
     //// field) a shadow register is not required.
     //
-    ECanaShadow.CANME.all = ECanaRegs.CANME.all;
+    /*ECanaShadow.CANME.all = ECanaRegs.CANME.all;
     ECanaShadow.CANME.all = 0xFFFFFFFF;
+    ECanaRegs.CANME.all = ECanaShadow.CANME.all;*/
+
+    ECanaShadow.CANME.all = ECanaRegs.CANME.all;
+    ECanaShadow.CANME.bit.ME0 = 1;
+    ECanaRegs.CANME.all = ECanaShadow.CANME.all;
+
+    ECanaShadow.CANME.all = ECanaRegs.CANME.all;
+    ECanaShadow.CANME.bit.ME16 = 1;
     ECanaRegs.CANME.all = ECanaShadow.CANME.all;
 
     //
     // Specify that 8 bytes will be sent/received
     //
     ECanaMboxes.MBOX0.MSGCTRL.bit.DLC = 8;
-    ECanaMboxes.MBOX1.MSGCTRL.bit.DLC = 8;
+    /*ECanaMboxes.MBOX1.MSGCTRL.bit.DLC = 8;
     ECanaMboxes.MBOX2.MSGCTRL.bit.DLC = 8;
     ECanaMboxes.MBOX3.MSGCTRL.bit.DLC = 8;
     ECanaMboxes.MBOX4.MSGCTRL.bit.DLC = 8;
@@ -249,7 +266,8 @@ void main(void)
     ECanaMboxes.MBOX12.MSGCTRL.bit.DLC = 8;
     ECanaMboxes.MBOX13.MSGCTRL.bit.DLC = 8;
     ECanaMboxes.MBOX14.MSGCTRL.bit.DLC = 8;
-    ECanaMboxes.MBOX15.MSGCTRL.bit.DLC = 8;
+    ECanaMboxes.MBOX15.MSGCTRL.bit.DLC = 8;*/
+    ECanaMboxes.MBOX16.MSGCTRL.bit.DLC = 8;
 
     //
     // Write to the mailbox RAM field of MBOX0 - 15
@@ -257,7 +275,7 @@ void main(void)
     ECanaMboxes.MBOX0.MDL.all = 0x9555AAA0;
     ECanaMboxes.MBOX0.MDH.all = 0x89ABCDEF;
 
-    ECanaMboxes.MBOX1.MDL.all = 0x9555AAA1;
+    /*ECanaMboxes.MBOX1.MDL.all = 0x9555AAA1;
     ECanaMboxes.MBOX1.MDH.all = 0x89ABCDEF;
 
     ECanaMboxes.MBOX2.MDL.all = 0x9555AAA2;
@@ -300,14 +318,14 @@ void main(void)
     ECanaMboxes.MBOX14.MDH.all = 0x89ABCDEF;
 
     ECanaMboxes.MBOX15.MDL.all = 0x00000001;
-    ECanaMboxes.MBOX15.MDH.all = 0x00000002;
+    ECanaMboxes.MBOX15.MDH.all = 0x00000002;*/
 
     //
     // Since this write is to the entire register (instead of a bit
     // field) a shadow register is not required.
     //
-    EALLOW;
-    ECanaRegs.CANMIM.all = 0xFFFFFFFF;
+    //EALLOW;
+    //ECanaRegs.CANMIM.all = 0xFFFFFFFF;
 
     /*
     //
@@ -327,12 +345,34 @@ void main(void)
         //
         // Set TRS for all transmit mailboxes
         //
-        ECanaRegs.CANTRS.all = 0x0000FFFF;
+        /*ECanaRegs.CANTRS.all = 0x0000FFFF;
         
-        while(ECanaRegs.CANTRS.all != 0x00000000) {}  // Wait for all TRSn to clear
+        while(ECanaRegs.CANTRS.all != 0x00000000) {testCount++;}  // Wait for all TRSn to clear
         ECanaRegs.CANTA.all = 0x0000FFFF;
         while(ECanaRegs.CANRMP.all != 0xFFFF0000) {}  // Wait for all RMPn to be set..
-        ECanaRegs.CANRMP.all = 0xFFFF0000;            // Clear all RMPn bits and start
+        ECanaRegs.CANRMP.all = 0xFFFF0000;            // Clear all RMPn bits and start*/
+
+        ECanaShadow.CANTRS.all = 0;
+        ECanaShadow.CANTRS.bit.TRS0 = 1;     // Set TRS for mailbox under test
+        ECanaRegs.CANTRS.all = ECanaShadow.CANTRS.all;
+
+        do
+        {
+           ECanaShadow.CANTA.all = ECanaRegs.CANTA.all;
+        } while(ECanaShadow.CANTA.bit.TA0 == 0 );// Wait for TA0 bit to be set
+
+        ECanaShadow.CANTA.all = 0;
+        ECanaShadow.CANTA.bit.TA0 = 1;                  // Clear TA0
+        ECanaRegs.CANTA.all = ECanaShadow.CANTA.all;
+
+        do
+        {
+           ECanaShadow.CANRMP.all = ECanaRegs.CANRMP.all;
+        } while(ECanaShadow.CANRMP.bit.RMP16 == 0 );// Wait for TA0 bit to be set
+
+        ECanaShadow.CANRMP.all = 0;
+        ECanaShadow.CANRMP.bit.RMP16 = 1;                  // Clear TA0
+        ECanaRegs.CANRMP.all = ECanaShadow.CANRMP.all;
 
         /*
         //
@@ -358,6 +398,9 @@ void main(void)
 
         MessageReceivedCount++;
 
+        mailbox_read(16);
+
+        /*
         //
         // Read from Receive mailboxes and begin checking for data
         // Read & check 16 mailboxes
@@ -373,9 +416,9 @@ void main(void)
             // Checks the received data
             //
             mailbox_check(TestMbox1,TestMbox2,TestMbox3);
-        }
+        }*/
     }
-    ESTOP0;
+    //ESTOP0;
 }
 
 //
