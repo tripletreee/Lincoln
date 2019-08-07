@@ -8,11 +8,14 @@
 #include "pid.h"
 #include "ecap.h"
 #include "bldc.h"
+#include "can.h"
 
 
 __interrupt void cpu_timer0_isr(void);
 __interrupt void ecap1_isr(void);
 __interrupt void ecap3_isr(void);
+__interrupt void ecan0_isr(void);
+
 
 inline void Init_PIE_Vector_Table(void){
     
@@ -49,6 +52,7 @@ inline void Init_PIE_Vector_Table(void){
     PieVectTable.TINT0 = &cpu_timer0_isr; // Start the CPU timer
     PieVectTable.ECAP1_INT = &ecap1_isr;
     PieVectTable.ECAP3_INT = &ecap3_isr;
+    PieVectTable.ECAN0INTA = &ecan0_isr;
     EDIS;      // This is needed to disable write to EALLOW protected registers
 }
 
@@ -64,6 +68,11 @@ inline void Enable_interrupts(void){
     IER |= M_INT4;
 
     //
+    // Enable CPU INT9 which is ECAN interrupt
+    //
+    IER |= M_INT9;
+
+    //
     // Enable TINT0 in the PIE: Group 1 interrupt 7
     //
     PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
@@ -75,6 +84,12 @@ inline void Enable_interrupts(void){
     PieCtrlRegs.PIEIER4.bit.INTx3 = 1;
 
     //
+    // Enable eCAN INTn in the PIE: Group 9 interrupt
+    //
+    PieCtrlRegs.PIEIER9.bit.INTx5 = 1;  // Enable INTx.5 of INT9 (eCAN0INT)
+    //PieCtrlRegs.PIEIER9.bit.INTx6 = 1;  // Enable INTx.6 of INT9 (eCAN1INT)
+
+    //
     // Enable global Interrupts and higher priority real-time debug events
     //
     EINT;   // Enable Global interrupt INTM
@@ -82,6 +97,7 @@ inline void Enable_interrupts(void){
 }
 
 inline void Init_system(void){
+
     // Step 1. Initialize System Control:
     InitSysCtrl();
 
@@ -92,9 +108,10 @@ inline void Init_system(void){
     Init_PIE_Vector_Table();
 
     // Step 4. Initialize the Device Peripheral. 
-    InitCpuTimers();   // Initialize the Cpu Timers
-    Init_ePWMs();    // Initialize the ePWM modules
-    Init_eCAPs();   // Initialize the eCAP modules
+    InitCpuTimers();    // Initialize the CPU Timers
+    Init_ePWMs();       // Initialize the ePWM modules
+    Init_eCAPs();       // Initialize the eCAP modules
+    Init_eCANs();       // Initialize the eCAN modules
 
     // Configure CPU-Timer 0 to interrupt every 500 milliseconds:
     // 90MHz CPU Freq, 1 millisecond Period (in uSeconds)

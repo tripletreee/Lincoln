@@ -46,6 +46,11 @@
 			<locationURI>INSTALLROOT_F2806x/common/source/F2806x_DefaultIsr.c</locationURI>
 		</link>
 		<link>
+			<name>F2806x_ECan.c</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2806x/common/source/F2806x_ECan.c</locationURI>
+		</link>
+		<link>
 			<name>F2806x_EPwm.c</name>
 			<type>1</type>
 			<locationURI>INSTALLROOT_F2806x/common/source/F2806x_EPwm.c</locationURI>

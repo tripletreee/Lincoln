@@ -40,9 +40,9 @@ void Init_GPIO(void)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO24 = 0; // Synch to SYSCLKOUT GPIO24 (CAP1)
     GpioCtrlRegs.GPAMUX2.bit.GPIO24 = 1;  // Configure GPIO24 as CAP1
 
-    GpioCtrlRegs.GPAPUD.bit.GPIO25 = 0;	// Enable pull-up on GPIO25 (CAP2)
-    GpioCtrlRegs.GPAQSEL2.bit.GPIO25 = 0; // Synch to SYSCLKOUT GPIO25 (CAP2)
-    GpioCtrlRegs.GPAMUX2.bit.GPIO25 = 1;	   // Configure GPIO25 as CAP2
+    GpioCtrlRegs.GPAPUD.bit.GPIO25 = 0;	    // Enable pull-up on GPIO25 (CAP2)
+    GpioCtrlRegs.GPAQSEL2.bit.GPIO25 = 0;   // Synch to SYSCLKOUT GPIO25 (CAP2)
+    GpioCtrlRegs.GPAMUX2.bit.GPIO25 = 1;	// Configure GPIO25 as CAP2
 
     GpioCtrlRegs.GPAPUD.bit.GPIO26 = 0;    // Enable pull-up on GPIO26 (CAP3)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO26 = 0; // Synch to SYSCLKOUT GPIO26 (CAP3)
@@ -51,6 +51,13 @@ void Init_GPIO(void)
     GpioCtrlRegs.GPBMUX2.bit.GPIO50 = 0;  // Configure GPIO50 as GPIO
     GpioCtrlRegs.GPBDIR.bit.GPIO50 = 1;   // GPIO50 = output
     GpioDataRegs.GPBSET.bit.GPIO50 = 1;   // output set high (enable drv8305)
+
+    GpioCtrlRegs.GPAPUD.bit.GPIO30 = 0;     // Enable pull-up for GPIO30 (CANRXA)
+    GpioCtrlRegs.GPAQSEL2.bit.GPIO30 = 3;   // Asynch qual for GPIO30 (CANRXA)
+    GpioCtrlRegs.GPAMUX2.bit.GPIO30 = 1;    // Configure GPIO30 as CAN RX
+
+    GpioCtrlRegs.GPAPUD.bit.GPIO31 = 0;     // Enable pull-up for GPIO31 (CANTXA)
+    GpioCtrlRegs.GPAMUX2.bit.GPIO31 = 1;    // Configure GPIO31 as CAN TX
 
     EDIS;
 }

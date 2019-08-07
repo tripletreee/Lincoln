@@ -37,6 +37,8 @@ PID_Handle PID_Motor_Handle = &PID_Motor;
 PID_Obj PID_Gimbal = {20, 2, 240, 800, -800, 0, 0, 3000, -3000, 0, 0, 0};
 PID_Handle PID_Gimbal_Handle = &PID_Gimbal;
 
+int flag_init = 1;
+
 
 // system state machine
 // 0: Initial
@@ -76,6 +78,7 @@ __interrupt void cpu_timer0_isr(void)
 
     CpuTimer0.InterruptCount++;
     count_1khz++;
+    count_300hz++;
 
     // If counts to 10 (100 Hz), update the command
     if(count_1khz >= 10){
@@ -83,11 +86,20 @@ __interrupt void cpu_timer0_isr(void)
         command_servo_position = shadow_servo_position;
         command_gimbal_position = shadow_gimbal_position;
         //CpuTimer0.InterruptCount = 0;
+
+        can_SendMailBox0(); // send mailbox0
         count_1khz = 0;
     }
-    EPwm2Regs.CMPA.half.CMPA = command_servo_position;
+
+    if(count_300hz >= 3){
+        EPwm2Regs.CMPA.half.CMPA = command_servo_position;
+        count_300hz = 0;
+    }
+
 
     GpioDataRegs.GPATOGGLE.bit.GPIO12 = 1;
+
+
 
     // Acknowledge this interrupt to receive more interrupts from group 1
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
@@ -116,9 +128,9 @@ __interrupt void ecap1_isr(void){
 
         measured_motor_speed_pre = measured_motor_speed;
 
-        test = duty_count - 13 - encoder_motor_position;
-        test1 = encoder_motor_position;
-        test2 = encoder_motor_position_pre;
+        //test = duty_count - 13 - encoder_motor_position;
+        //test1 = encoder_motor_position;
+        //test2 = encoder_motor_position_pre;
 
         if( abs(encoder_motor_position - encoder_motor_position_pre ) < 2000)
         {
@@ -134,6 +146,12 @@ __interrupt void ecap1_isr(void){
                 measured_motor_speed = encoder_motor_position_pre - 4096 - encoder_motor_position;
             }
         }
+
+        if(flag_init == 1){
+            flag_init = 0;
+            measured_motor_speed = 0;
+        }
+
         measured_motor_speed = measured_motor_speed *0.7 + measured_motor_speed_pre*0.3;
 
         PID_Control(PID_Motor_Handle, command_motor_speed, measured_motor_speed);
@@ -160,18 +178,17 @@ __interrupt void ecap1_isr(void){
 
 // Gimbal ISR
 __interrupt void ecap3_isr(void){
-    ECap3Regs.ECCLR.bit.CEVT2 = 1;
-    ECap3Regs.ECCLR.bit.INT = 1;
-    //
-    // Acknowledge this interrupt to receive more interrupts from group 4
-    //
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP4;
+
+
     int32 ecap3_t1;
     int32 ecap3_t2;
     float duty_count;
 
     ecap3_t1 = ECap3Regs.CAP1;
     ecap3_t2 = ECap3Regs.CAP2;
+
+    ECap3Regs.ECCLR.bit.CEVT2 = 1;
+    ECap3Regs.ECCLR.bit.INT = 1;
 
     duty_count = ((float)ecap3_t1 / (float)ecap3_t2)*4119;
 
@@ -200,6 +217,26 @@ __interrupt void ecap3_isr(void){
         bldc_commute(phase_order, direction, PID_Gimbal.outputInt); //PID_Gimbal.output
     }
 
+    //
+    // Acknowledge this interrupt to receive more interrupts from group 4
+    //
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP4;
+
+}
+
+Uint32 MessageReceivedCount = 0;
+Uint32 MDL;
+Uint32 MDH;
+
+
+// CAN Bus interrupt
+__interrupt void ecan0_isr(void)
+{
+    can_ReadMailBox(16, &MDL, &MDH);
+    MessageReceivedCount++;
+    ECanaRegs.CANRMP.bit.RMP16 = 1; ////PieCtrlRegs.PIEACK.bit.ACK9 = 1;    // Enables PIE to drive a pulse into the CPU
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP9;
+    return;
 }
 
 //
