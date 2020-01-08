@@ -17,7 +17,7 @@ int bldc_calculate_phase(int16 position){
     return phase_order;
 }
 
-void bldc_commute(int phase_order, int direction, float PWM){
+void bldc_commute(int phase_order, int direction, int PWM){
 
     if((phase_order == 1) && (direction == 0) || (phase_order == 4) && (direction == 1)){
         // A -> B

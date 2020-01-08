@@ -59,17 +59,23 @@ void main(void)
 
 int count_1khz = 0;
 int count_300hz = 0;
+int count_120hz = 0;
 
 int test = 0 ;
 int test1 = 0;
 int test2 = 0;
 int test3 = 0;
 
+int _tmp = 0;
+
+
 
 // cpu_timer0_isr. The main ISR for control loop
 // Main ISR frequency is 1 kHz
 __interrupt void cpu_timer0_isr(void)
 {
+
+
 
     int32 ecap2_t1;
     int32 ecap2_t2;
@@ -79,15 +85,18 @@ __interrupt void cpu_timer0_isr(void)
     CpuTimer0.InterruptCount++;
     count_1khz++;
     count_300hz++;
+    count_120hz++;
 
     // If counts to 10 (100 Hz), update the command
     if(count_1khz >= 10){
         command_motor_speed = shadow_motor_speed;
         command_servo_position = shadow_servo_position;
-        command_gimbal_position = shadow_gimbal_position;
-        //CpuTimer0.InterruptCount = 0;
 
-        can_SendMailBox0(); // send mailbox0
+        // commented by test
+        command_gimbal_position = shadow_gimbal_position;
+
+        CpuTimer0.InterruptCount = 0;
+
         count_1khz = 0;
     }
 
@@ -96,19 +105,26 @@ __interrupt void cpu_timer0_isr(void)
         count_300hz = 0;
     }
 
+    if(count_120hz > 8){
+        ECanaMboxes.MBOX0.MDL.all = _tmp++;
+        ECanaMboxes.MBOX0.MDH.all = 0x12345678;
+        can_SendMailBox0(); // send mailbox0
+        count_120hz = 0;
+    }
+
 
     GpioDataRegs.GPATOGGLE.bit.GPIO12 = 1;
 
 
-
     // Acknowledge this interrupt to receive more interrupts from group 1
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;
+    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
 }
 
 
 
 // Motor ISR
 __interrupt void ecap1_isr(void){
+
     int32 ecap1_t1;
     int32 ecap1_t2;
     float duty_count;
@@ -127,10 +143,6 @@ __interrupt void ecap1_isr(void){
         encoder_motor_position = duty_count - 16;
 
         measured_motor_speed_pre = measured_motor_speed;
-
-        //test = duty_count - 13 - encoder_motor_position;
-        //test1 = encoder_motor_position;
-        //test2 = encoder_motor_position_pre;
 
         if( abs(encoder_motor_position - encoder_motor_position_pre ) < 2000)
         {
@@ -172,13 +184,46 @@ __interrupt void ecap1_isr(void){
     //
     // Acknowledge this interrupt to receive more interrupts from group 4
     //
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP4;
+    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP4;
 }
 
+
+// added in test
+int _counter = 0;
+int _odd = 0;
+int tmp_position = 2500;
 
 // Gimbal ISR
 __interrupt void ecap3_isr(void){
 
+/*added in test*/
+    /*
+    if(_counter > 100){
+        _counter = 0;
+        _odd = 1 - _odd;
+    }
+    else{
+        _counter++;
+    }
+
+
+    if(_odd == 0){
+        tmp_position = tmp_position + 7;
+    }
+    else{
+        tmp_position = tmp_position - 7;
+    }
+
+    if(tmp_position > 3200){
+        tmp_position = 3200;
+    }
+    else if(tmp_position<0){
+        tmp_position = 0;
+    }
+
+    command_gimbal_position = tmp_position;
+    */
+/*added in test*/
 
     int32 ecap3_t1;
     int32 ecap3_t2;
@@ -220,7 +265,7 @@ __interrupt void ecap3_isr(void){
     //
     // Acknowledge this interrupt to receive more interrupts from group 4
     //
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP4;
+    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP4;
 
 }
 
@@ -235,7 +280,7 @@ __interrupt void ecan0_isr(void)
     can_ReadMailBox(16, &MDL, &MDH);
     MessageReceivedCount++;
     ECanaRegs.CANRMP.bit.RMP16 = 1; ////PieCtrlRegs.PIEACK.bit.ACK9 = 1;    // Enables PIE to drive a pulse into the CPU
-    PieCtrlRegs.PIEACK.all = PIEACK_GROUP9;
+    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP9;
     return;
 }
 

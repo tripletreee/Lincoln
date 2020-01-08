@@ -10,7 +10,7 @@
 #define TICKS_PER_PHASE (BLDC_TICKS / (BLDC_POLES/2) / 6)
 
 int bldc_calculate_phase(int16 position);
-void bldc_commute(int phase_order, int direction, float PWM);
+void bldc_commute(int phase_order, int direction, int PWM);
 
 #endif // end of F28069_BLDC_H definition
 

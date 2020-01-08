@@ -96,7 +96,7 @@ void Init_ePWM4(void)
     EPwm4Regs.TBPHS.half.TBPHS = 0x0000;       // Phase is 0
     EPwm4Regs.TBCTR = 0x0000;                  // Clear counter
     EPwm4Regs.TBCTL.bit.PRDLD = TB_SHADOW;     // Not sure, from the example on the manual
-    EPwm4Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_DISABLE; // Same as above
+    EPwm4Regs.TBCTL.bit.SYNCOSEL = TB_CTR_ZERO; // Same as above
     EPwm4Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;   // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
     EPwm4Regs.TBCTL.bit.CLKDIV = TB_DIV1;
     EPwm4Regs.DBFED = 20; // FED = 30 TBCLKs Dead-Band Generator Rising Edge Delay Count Register
@@ -121,7 +121,7 @@ void Init_ePWM4(void)
     //
     EPwm4Regs.AQCTLA.bit.ZRO = AQ_SET;
     EPwm4Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm4Regs.AQCTLB.bit.PRD = AQ_CLEAR;
+    EPwm4Regs.AQCTLB.bit.ZRO = AQ_CLEAR;
     EPwm4Regs.AQCTLB.bit.CBU = AQ_SET;
 }
 
@@ -136,11 +136,11 @@ void Init_ePWM5(void)
     //
     EPwm5Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP; // Count up
     EPwm5Regs.TBPRD = EPWM5_TIMER_TBPRD;       // Set timer period
-    EPwm5Regs.TBCTL.bit.PHSEN = TB_DISABLE;    // Disable phase loading
+    EPwm5Regs.TBCTL.bit.PHSEN = TB_ENABLE;    // Disable phase loading
     EPwm5Regs.TBPHS.half.TBPHS = 0x0000;       // Phase is 0
     EPwm5Regs.TBCTR = 0x0000;                  // Clear counter
     EPwm5Regs.TBCTL.bit.PRDLD = TB_SHADOW;     // Not sure, from the example on the manual
-    EPwm5Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_DISABLE; // Same as above
+    EPwm5Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN; // Same as above
     EPwm5Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;   // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
     EPwm5Regs.TBCTL.bit.CLKDIV = TB_DIV1;
     EPwm5Regs.DBFED = 20; // FED = 30 TBCLKs Dead-Band Generator Rising Edge Delay Count Register
@@ -165,7 +165,7 @@ void Init_ePWM5(void)
     //
     EPwm5Regs.AQCTLA.bit.ZRO = AQ_SET;
     EPwm5Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm5Regs.AQCTLB.bit.PRD = AQ_CLEAR;
+    EPwm5Regs.AQCTLB.bit.ZRO = AQ_CLEAR;
     EPwm5Regs.AQCTLB.bit.CBU = AQ_SET;
 }
 
@@ -180,11 +180,11 @@ void Init_ePWM6(void)
     //
     EPwm6Regs.TBCTL.bit.CTRMODE = TB_COUNT_UP; // Count up
     EPwm6Regs.TBPRD = EPWM5_TIMER_TBPRD;       // Set timer period
-    EPwm6Regs.TBCTL.bit.PHSEN = TB_DISABLE;    // Disable phase loading
+    EPwm6Regs.TBCTL.bit.PHSEN = TB_ENABLE;    // Disable phase loading
     EPwm6Regs.TBPHS.half.TBPHS = 0x0000;       // Phase is 0
     EPwm6Regs.TBCTR = 0x0000;                  // Clear counter
     EPwm6Regs.TBCTL.bit.PRDLD = TB_SHADOW;     // Not sure, from the example on the manual
-    EPwm6Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_DISABLE; // Same as above
+    EPwm6Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN; // Same as above
     EPwm6Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;   // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
     EPwm6Regs.TBCTL.bit.CLKDIV = TB_DIV1;
     EPwm6Regs.DBFED = 20; // FED = 30 TBCLKs Dead-Band Generator Rising Edge Delay Count Register
@@ -209,7 +209,7 @@ void Init_ePWM6(void)
     //
     EPwm6Regs.AQCTLA.bit.ZRO = AQ_SET;
     EPwm6Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm6Regs.AQCTLB.bit.PRD = AQ_CLEAR;
+    EPwm6Regs.AQCTLB.bit.ZRO = AQ_CLEAR;
     EPwm6Regs.AQCTLB.bit.CBU = AQ_SET;
 }
 
