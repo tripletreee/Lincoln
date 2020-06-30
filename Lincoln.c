@@ -11,13 +11,13 @@
 
 #include "include/main.h"
 
-int16  command_motor_speed = 0;         // motor speed command: [0,1000]
-Uint16 command_servo_position = 17250;     // servo angle command: [12000,22500]
-Uint16 command_gimbal_position = 2645;     // gimbal angle command: [3480,1820]
+int16  command_motor_speed = 0;             // motor speed command: [0,1000]
+Uint16 command_servo_position = 17250;      // servo angle command: [12000,22500]
+Uint16 command_gimbal_position = 2645;      // gimbal angle command: [3480,1820]
 
-int16  shadow_motor_speed = 0;         // motor speed command: [0,1000]
-Uint16 shadow_servo_position = 17250;     // servo angle command: [12000,22500]
-Uint16 shadow_gimbal_position = 2680;     // gimbal angle command: [3480,1820]
+int16  shadow_motor_speed = 0;              // motor speed command: [0,1000]
+Uint16 shadow_servo_position = 17250;       // servo angle command: [12000,22500]
+Uint16 shadow_gimbal_position = 2680;       // gimbal angle command: [3480,1820]
 int  PWM_CNT = 0;
 int  SERVO_CNT = 17250;  //when pulse width = 1.5ms, servo at neutral(16875 + 375offset)  left 11250 right 22500
 
@@ -51,6 +51,8 @@ void main(void)
 {
     // Initialize the system
     Init_system();
+
+    bldc_enable_drv();
 
     // Forever loop
     for(;;){

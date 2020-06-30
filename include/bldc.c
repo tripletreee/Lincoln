@@ -1,5 +1,10 @@
 #include "bldc.h"
 
+void bldc_enable_drv(void){
+    _delay(400000);
+    GpioDataRegs.GPBSET.bit.GPIO50 = 1;
+}
+
 int bldc_calculate_phase(int16 position){
     // A-B: 0
     // C-B: 1

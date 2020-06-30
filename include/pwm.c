@@ -220,4 +220,8 @@ void Init_ePWMs(void)
     Init_ePWM4();
     Init_ePWM5();
     Init_ePWM6();
+
+    EALLOW;
+    SysCtrlRegs.PCLKCR0.bit.TBCLKSYNC = 1; // Start all the timers synced
+    EDIS;
 }
