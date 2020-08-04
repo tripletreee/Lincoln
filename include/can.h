@@ -6,7 +6,7 @@ void Init_eCANs(void);
 
 void can_ReadMailBox(int16 MBXnbr, Uint32 *MDL, Uint32 *MDH);
 
-void can_SendMailBox0(void);
+void can_SendMailBox(int16 MBXnbr, Uint32 MDL, Uint32 MDH);
 
 
 #endif // end of F28069_CAN_H definition

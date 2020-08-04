@@ -43,7 +43,7 @@ void Init_eCANs(void){
     ECanaMboxes.MBOX16.MSGID.bit.EXTMSGID_L = 0;
 
     //
-    // Configure Mailboxes 0-15 as Tx, 16-31 as Rx
+    // Configure Mailbox 0 as Tx, 16 as Rx
     //
     ECanaShadow.CANMD.all = ECanaRegs.CANMD.all;
     ECanaShadow.CANMD.bit.MD0 = 0;
@@ -62,7 +62,7 @@ void Init_eCANs(void){
     // Set Mailbox interrupt
     //
     EALLOW;
-    ECanaShadow.CANMIL.all  = 0x00000000 ; // Mailbox Interrupt Level
+    ECanaShadow.CANMIL.all  = 0x00000000 ; // Mailbox Interrupt Level 0
     ECanaRegs.CANMIL.all = ECanaShadow.CANMIL.all;
 
     ECanaShadow.CANMIM.all  = 0x00000000;   // Mailbox Interrupt Mask
@@ -97,8 +97,18 @@ void can_ReadMailBox(int16 MBXnbr, Uint32 *MDL, Uint32 *MDH){
     *MDH = Mailbox->MDH.all;
 }
 
-void can_SendMailBox0(void){
+void can_SendMailBox(int16 MBXnbr, Uint32 MDL, Uint32 MDH){
     struct ECAN_REGS ECanaShadow;
+    volatile struct MBOX *Mailbox;
+    Mailbox = &ECanaMboxes.MBOX0 + MBXnbr;
+
+    Mailbox->MDL.all = MDL;
+    Mailbox->MDH.all = MDH;
+
+//    ECanaShadow.CANTA.all = 0;
+//    ECanaShadow.CANTA.bit.TA0 = 1;       // Clear TA0
+//    ECanaRegs.CANTA.all = ECanaShadow.CANTA.all;
+
     ECanaShadow.CANTRS.all = 0;
     ECanaShadow.CANTRS.bit.TRS0 = 1;     // Set Transmit Request Set (TRS) register for mailbox 0
     ECanaRegs.CANTRS.all = ECanaShadow.CANTRS.all;

@@ -19,10 +19,8 @@
 #include "sci.h"
 #include "cla.h"
 
-
 #include "pid.h"
 #include "bldc.h"
-
 
 __interrupt void cpu_timer0_isr(void);
 __interrupt void ecap1_isr(void);
