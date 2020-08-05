@@ -41,7 +41,10 @@ PID_Handle PID_Gimbal_Handle = &PID_Gimbal;
 
 Uint16 ADC_Results[16];
 
-int flag_init = 1;
+int count_init = 0;
+int count_10khz = 0;
+int count_1khz = 0;
+Uint32 _tmp = 0;
 
 // system state machine
 // 0: Initial
@@ -61,16 +64,14 @@ void main(void)
     for(;;){
     }
 }
-int count_10khz = 0;
-int count_1khz = 0;
-int count_300hz = 0;
-int count_120hz = 0;
 
-Uint32 _tmp = 0;
 
 // ADC ISR 10 kHz
 __interrupt void adc_isr(void)
 {
+    int gimbal_phase_order;
+    float gimbal_position_difference;
+    int gimbal_direction;
 
     // 1 kHz control loop
     if(count_10khz == 10)
@@ -82,28 +83,18 @@ __interrupt void adc_isr(void)
         battery_voltage_f = battery_voltage_uint16*4.834e-3;
 
         count_1khz++;
-        count_300hz++;
-        count_120hz++;
 
         // If counts to 10 (100 Hz), update the command
         if(count_1khz >= 10){
             command_motor_speed = shadow_motor_speed;
             command_servo_position = shadow_servo_position;
             command_gimbal_position = shadow_gimbal_position;
-            CpuTimer0.InterruptCount = 0;
             count_1khz = 0;
         }
 
-        if(count_300hz >= 3){
-            EPwm2Regs.CMPA.half.CMPA = command_servo_position;
-            count_300hz = 0;
-        }
+        EPwm2Regs.CMPA.half.CMPA = command_servo_position;
 
-        if(count_120hz > 8){
-
-            count_120hz = 0;
-        }
-
+        // GPIO 12 is test point
         GpioDataRegs.GPATOGGLE.bit.GPIO12 = 1;
 
         PID_Control(PID_Motor_Handle, command_motor_speed, measured_motor_speed);
@@ -112,23 +103,18 @@ __interrupt void adc_isr(void)
 
         PID_Control(PID_Gimbal_Handle, command_gimbal_position, encoder_gimbal_position);
 
-        int phase_order;
-        float position_difference;
-        int direction;
-        direction = PID_Gimbal.output > 0 ? 1:0;
-        // 0: right turn; 1: left turn;
+        gimbal_direction = PID_Gimbal.output > 0 ? 1:0; // 0: right turn; 1: left turn;
 
-        position_difference = abs(encoder_gimbal_position - BLDC_AB_POS) / TICKS_PER_PHASE;
-        phase_order = (int)position_difference % 6;
+        gimbal_position_difference = abs(encoder_gimbal_position - BLDC_AB_POS) / TICKS_PER_PHASE;
+
+        gimbal_phase_order = (int)gimbal_position_difference % 6;
 
         if (encoder_gimbal_position < BLDC_AB_POS)
         {
-            phase_order = 5 - phase_order;
+            gimbal_phase_order = 5 - gimbal_phase_order;
         }
-
-        bldc_commute(phase_order, direction, PID_Gimbal.outputInt); //PID_Gimbal.output
+        bldc_commute(gimbal_phase_order, gimbal_direction, PID_Gimbal.outputInt); //PID_Gimbal.output
     }
-
     count_10khz++;
 
     //
@@ -184,17 +170,17 @@ __interrupt void ecap1_isr(void){
                 measured_motor_speed = encoder_motor_position_pre - 4096 - encoder_motor_position;
             }
         }
-        if(flag_init == 1)
-        {
-            flag_init = 0;
-            measured_motor_speed = 0;
-        }
-        measured_motor_speed = measured_motor_speed *0.7 + measured_motor_speed_pre*0.3;
 
+        measured_motor_speed = measured_motor_speed *0.7 + measured_motor_speed_pre*0.3;
     }
     else{
         encoder_motor_position_pre = encoder_motor_position;
         encoder_motor_position = encoder_motor_position + measured_motor_speed;
+    }
+
+    if(count_init<4){
+        count_init++;
+        measured_motor_speed = 0;
     }
 
     ECap1Regs.ECCLR.bit.CEVT2 = 1;

@@ -17,8 +17,16 @@ The DSP will recieve the command frame at a rate of 60/120/240 FPS, which depend
 The inner loop control frequency is 1 kHz.  
 The two magnetic encoder will update their postion info at 1.1 kHz.  
 
-The main ISR frequency will be 1 kHz.  
+ADC sampling frequency 10 kHz. Position control loop is 1 kHz. Motor velocity control loop is 1 kHz, gimbal position control loop is 1 kHz, servo PWM is 300 Hz.
 Every ten times of the main ISR, the encoder position will be updated.  
-Based on the position control loop, the command from the host will be updated periodically.
+Based on the position control loop, the command from the host will be updated periodically through CAN bus.
 
 # PWM Setting
+PWM1 is for motor.
+PWM2 is for servo.
+PWM4,5,6 are for gimble.
+PWMs are synced and PWM1 triggers ADC sampling at 10kHz.
+
+# CAN Bus Protocol
+CAN bus will give a 8-byte answer:
+index | motor_speed | gimbal_position | battery_voltage| 0x00000000
