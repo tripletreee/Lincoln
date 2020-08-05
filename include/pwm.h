@@ -3,13 +3,19 @@
 
 #include "F2806x_Device.h"     // F2806x Headerfile Include File
 #include "F2806x_Examples.h"
+#include "clock.h"
 
-#define EPWM1_TIMER_TBPRD   2999      // Configure the period for the timer 30KHz
-#define EPWM2_TIMER_TBPRD   37499     // Configure the PWM period as 300Hz
+#define MOTOR_HIGH_VALUE    ((CPU_FREQ/MOTOR_PWM_FREQ/2)+1)     // MOTOR PWM 30 kHz
+#define MOTOR_HALF_PERIOD   CPU_FREQ/MOTOR_PWM_FREQ/2           // MOTOR half period 1500
 
-#define EPWM4_TIMER_TBPRD   2999      // Configure the period for the timer 30KHz
-#define EPWM5_TIMER_TBPRD   2999      // Configure the period for the timer 30KHz
-#define EPWM6_TIMER_TBPRD   2999      // Configure the period for the timer 30KHz
+#define GIMBAL_HIGH_VALUE   ((CPU_FREQ/GIMBAL_PWM_FREQ/2)+1)    // GIMBAL PWM 30 kHz
+#define GIMBAL_HALF_PERIOD  CPU_FREQ/GIMBAL_PWM_FREQ/2          // GIMBAL half period 1500
+
+#define SERVO_HALF_PERIOD   CPU_FREQ/SERVO_PWM_FREQ/2           // SERVO half period
+
+#define EPWM1_TIMER_TBPRD   CPU_FREQ/PWM_FREQ/2      // Configure the period for the timer 30KHz
+#define EPWM2_TIMER_TBPRD   37499                    // Configure the PWM period as 300Hz
+
 
 #define PWM_HIGH_VALUE 3000
 

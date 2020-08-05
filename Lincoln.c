@@ -12,11 +12,11 @@
 #include "include/main.h"
 
 int16  command_motor_speed = 0;             // motor speed command: [0,1000]
-Uint16 command_servo_position = 17250;      // servo angle command: [12000,22500]
+Uint16 command_servo_position = 17250/2;      // servo angle command: [12000,22500]
 Uint16 command_gimbal_position = 2645;      // gimbal angle command: [3480,1820]
 
 int16  shadow_motor_speed = 0;              // motor speed command: [0,1000]
-Uint16 shadow_servo_position = 17250;       // servo angle command: [12000,22500]
+Uint16 shadow_servo_position = 17250/2;       // servo angle command: [12000,22500]
 Uint16 shadow_gimbal_position = 2680;       // gimbal angle command: [3480,1820]
 //int  PWM_CNT = 0;
 //int  SERVO_CNT = 17250;  //when pulse width = 1.5ms, servo at neutral(16875 + 375offset)  left 11250 right 22500
@@ -32,10 +32,10 @@ int16 measured_motor_speed = 0;         // measured motor speed
 int16 measured_motor_speed_pre = 0;     // measured motor speed previous
 Uint16 measured_gimbal_angle = 0;       // measured gimbal angle
 
-PID_Obj PID_Motor = {6, 0.5, 0, 1500, -100, 0, 0, 1500, 0, 0, 0, 0};
+PID_Obj PID_Motor = {3, 0.25, 0, 750, -100, 0, 0, 750, 0, 0, 0, 0};
 PID_Handle PID_Motor_Handle = &PID_Motor;
 
-PID_Obj PID_Gimbal = {20, 2, 240, 800, -800, 0, 0, 3000, -3000, 0, 0, 0};
+PID_Obj PID_Gimbal = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Handle = &PID_Gimbal;
 
 int flag_init = 1;
@@ -125,8 +125,8 @@ __interrupt void cpu_timer0_isr(void)
 // Motor encoder ISR, update the motor speed
 __interrupt void ecap1_isr(void){
 
-    int32 ecap1_t1;
-    int32 ecap1_t2;
+    Uint32 ecap1_t1;
+    Uint32 ecap1_t2;
     float duty_count;
 
     ecap1_t1 = ECap1Regs.CAP1;
@@ -182,8 +182,8 @@ __interrupt void ecap1_isr(void){
 // Gimbal encoder ISR, update the gimbal position
 __interrupt void ecap3_isr(void){
 
-    int32 ecap3_t1;
-    int32 ecap3_t2;
+    Uint32 ecap3_t1;
+    Uint32 ecap3_t2;
     float duty_count;
 
     ecap3_t1 = ECap3Regs.CAP1;
@@ -198,7 +198,7 @@ __interrupt void ecap3_isr(void){
 
         encoder_gimbal_position_pre = encoder_gimbal_position;
 
-        encoder_gimbal_position = (duty_count - 16)*1 + encoder_gimbal_position_pre * 0;
+        encoder_gimbal_position = duty_count - 16;
     }
 
     //
