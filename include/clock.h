@@ -12,7 +12,7 @@
 #define GIMBAL_POS_FREQ     1E3             // GIMBAL position control frequency 1 kHz
 #define MOTOR_POS_FREQ      1E3             // MOTOR position control frequency 1 kHz
 
-#define SERVO_PWM_FREQ      300             // SERVO PWM frequency 300 Hz
+#define SERVO_PWM_FREQ      3E2             // SERVO PWM frequency 300 Hz
 
 
 //#define MOTOR_ENC_UPDATE_FREQ 200.0         // Motor encoder update frequency 200 Hz

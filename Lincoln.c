@@ -12,16 +12,17 @@
 #include "include/main.h"
 
 int16  command_motor_speed = 0;             // motor speed command: [0,1000]
-Uint16 command_servo_position = 17250/2;      // servo angle command: [12000,22500]
+Uint16 command_servo_position = 17250;      // servo angle command: [12000,22500]
 Uint16 command_gimbal_position = 2645;      // gimbal angle command: [3480,1820]
 
 int16  shadow_motor_speed = 0;              // motor speed command: [0,1000]
-Uint16 shadow_servo_position = 17250/2;       // servo angle command: [12000,22500]
+Uint16 shadow_servo_position = 17250;       // servo angle command: [12000,22500]
 Uint16 shadow_gimbal_position = 2680;       // gimbal angle command: [3480,1820]
 //int  PWM_CNT = 0;
 //int  SERVO_CNT = 17250;  //when pulse width = 1.5ms, servo at neutral(16875 + 375offset)  left 11250 right 22500
 
-Uint16 battery_voltage = 0;                 // battery voltage ADC result
+Uint16 battery_voltage_uint16 = 0;                 // battery voltage ADC result
+float battery_voltage_f = 0;
 
 int16 encoder_motor_position = 0;
 int16 encoder_motor_position_pre = 0;
@@ -37,6 +38,8 @@ PID_Handle PID_Motor_Handle = &PID_Motor;
 
 PID_Obj PID_Gimbal = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Handle = &PID_Gimbal;
+
+Uint16 ADC_Results[16];
 
 int flag_init = 1;
 
@@ -58,64 +61,89 @@ void main(void)
     for(;;){
     }
 }
-
+int count_10khz = 0;
 int count_1khz = 0;
 int count_300hz = 0;
 int count_120hz = 0;
 
 Uint32 _tmp = 0;
 
+// ADC ISR 10 kHz
+__interrupt void adc_isr(void)
+{
+
+    // 1 kHz control loop
+    if(count_10khz == 10)
+    {
+        count_10khz = 0;
+
+        ADC_Get_Results(ADC_Results);
+        battery_voltage_uint16 = ADC_Results[4];
+        battery_voltage_f = battery_voltage_uint16*4.834e-3;
+
+        count_1khz++;
+        count_300hz++;
+        count_120hz++;
+
+        // If counts to 10 (100 Hz), update the command
+        if(count_1khz >= 10){
+            command_motor_speed = shadow_motor_speed;
+            command_servo_position = shadow_servo_position;
+            command_gimbal_position = shadow_gimbal_position;
+            CpuTimer0.InterruptCount = 0;
+            count_1khz = 0;
+        }
+
+        if(count_300hz >= 3){
+            EPwm2Regs.CMPA.half.CMPA = command_servo_position;
+            count_300hz = 0;
+        }
+
+        if(count_120hz > 8){
+
+            count_120hz = 0;
+        }
+
+        GpioDataRegs.GPATOGGLE.bit.GPIO12 = 1;
+
+        PID_Control(PID_Motor_Handle, command_motor_speed, measured_motor_speed);
+
+        EPwm1Regs.CMPA.half.CMPA = PID_Motor.outputInt;
+
+        PID_Control(PID_Gimbal_Handle, command_gimbal_position, encoder_gimbal_position);
+
+        int phase_order;
+        float position_difference;
+        int direction;
+        direction = PID_Gimbal.output > 0 ? 1:0;
+        // 0: right turn; 1: left turn;
+
+        position_difference = abs(encoder_gimbal_position - BLDC_AB_POS) / TICKS_PER_PHASE;
+        phase_order = (int)position_difference % 6;
+
+        if (encoder_gimbal_position < BLDC_AB_POS)
+        {
+            phase_order = 5 - phase_order;
+        }
+
+        bldc_commute(phase_order, direction, PID_Gimbal.outputInt); //PID_Gimbal.output
+    }
+
+    count_10khz++;
+
+    //
+    // Clear ADCINT1 flag reinitialize for next SOC
+    //
+    AdcRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;
+
+    PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;   // Acknowledge interrupt to PIE
+}
+
 // cpu_timer0_isr. The main ISR for control loop
 // Main ISR frequency is 1 kHz
 __interrupt void cpu_timer0_isr(void)
 {
     CpuTimer0.InterruptCount++;
-    count_1khz++;
-    count_300hz++;
-    count_120hz++;
-
-    // If counts to 10 (100 Hz), update the command
-    if(count_1khz >= 10){
-        command_motor_speed = shadow_motor_speed;
-        command_servo_position = shadow_servo_position;
-        command_gimbal_position = shadow_gimbal_position;
-        CpuTimer0.InterruptCount = 0;
-        count_1khz = 0;
-    }
-
-    if(count_300hz >= 3){
-        EPwm2Regs.CMPA.half.CMPA = command_servo_position;
-        count_300hz = 0;
-    }
-
-    if(count_120hz > 8){
-
-        count_120hz = 0;
-    }
-
-    GpioDataRegs.GPATOGGLE.bit.GPIO12 = 1;
-
-    PID_Control(PID_Motor_Handle, command_motor_speed, measured_motor_speed);
-
-    EPwm1Regs.CMPA.half.CMPA = PID_Motor.outputInt;
-
-    PID_Control(PID_Gimbal_Handle, command_gimbal_position, encoder_gimbal_position);
-
-    int phase_order;
-    float position_difference;
-    int direction;
-    direction = PID_Gimbal.output > 0 ? 1:0;
-    // 0: right turn; 1: left turn;
-
-    position_difference = abs(encoder_gimbal_position - BLDC_AB_POS) / TICKS_PER_PHASE;
-    phase_order = (int)position_difference % 6;
-
-    if (encoder_gimbal_position < BLDC_AB_POS)
-    {
-        phase_order = 5 - phase_order;
-    }
-
-    bldc_commute(phase_order, direction, PID_Gimbal.outputInt); //PID_Gimbal.output
 
     // Acknowledge this interrupt to receive more interrupts from group 1
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;

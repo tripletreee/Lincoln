@@ -15,9 +15,6 @@ void Init_ADC(void);
 
 inline void ADC_Get_Results(Uint16 *ADC_Results){
 
-    int _i = 0;
-    Uint16 tmp;
-
     ADC_Results[0] = AdcResult.ADCRESULT0;
     ADC_Results[1] = AdcResult.ADCRESULT1;
     ADC_Results[2] = AdcResult.ADCRESULT2;
@@ -35,19 +32,6 @@ inline void ADC_Get_Results(Uint16 *ADC_Results){
     ADC_Results[14] = AdcResult.ADCRESULT14;
     ADC_Results[15] = AdcResult.ADCRESULT15;
 
-
-    // The galvo position encoder data is read from
-    // an external ADC through SPI
-
-    tmp = SpibRegs.SPIRXBUF;     // First Read SPI data
-    ADC_Results[16] = SpibRegs.SPIRXBUF;     // Encoder va
-    ADC_Results[17] = SpibRegs.SPIRXBUF;     // Encoder vb
-
-    // Write SPI command for next time reading
-    for(_i=0;_i<3;_i++)
-    {
-       SpibRegs.SPITXBUF = 0x8680;      // Send SPI data
-    }
 }
 
 #endif // end of F28069_ADC_H definition

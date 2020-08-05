@@ -15,5 +15,5 @@ expAdd ("measured_motor_speed");
 expAdd ("measured_motor_speed_pre");
 expAdd ("measured_gimbal_angle");
 
-
+expAdd ("battery_voltage_f");
 

@@ -26,7 +26,7 @@ __interrupt void cpu_timer0_isr(void);
 __interrupt void ecap1_isr(void);
 __interrupt void ecap3_isr(void);
 __interrupt void ecan0_isr(void);
-
+__interrupt void adc_isr(void);
 
 inline void Init_PIE_Vector_Table(void){
     
@@ -64,12 +64,13 @@ inline void Init_PIE_Vector_Table(void){
     PieVectTable.ECAP1_INT = &ecap1_isr;
     PieVectTable.ECAP3_INT = &ecap3_isr;
     PieVectTable.ECAN0INTA = &ecan0_isr;
+    PieVectTable.ADCINT1 = &adc_isr;
     EDIS;      // This is needed to disable write to EALLOW protected registers
 }
 
 inline void Enable_interrupts(void){
     //
-    // Enable CPU INT1 which is connected to CPU-Timer 0
+    // Enable CPU INT1 which is connected to CPU-Timer 0 and ADC
     //
     IER |= M_INT1;
     
@@ -92,6 +93,16 @@ inline void Enable_interrupts(void){
     // Enable CPU INT9 which is ECAN, SCI,  interrupt
     //
     IER |= M_INT9;
+
+    //
+    // Enable CPU INT11 which is CLA interrupt
+    //
+    //IER |= M_INT11;
+
+    //
+    // Enable INT 1.1 in the PIE (ADC)
+    //
+    PieCtrlRegs.PIEIER1.bit.INTx1 = 1;
 
     //
     // Enable TINT0 in the PIE: Group 1 interrupt 7
@@ -171,6 +182,7 @@ inline void Init_system(void){
 
     // Step 4. Initialize the Device Peripheral. 
     InitCpuTimers();    // Initialize the CPU Timers
+    Init_ADC();         // Initialize the ADC
     Init_ePWMs();       // Initialize the ePWM modules
     Init_eCAPs();       // Initialize the eCAP modules
     Init_eCANs();       // Initialize the eCAN modules
@@ -185,6 +197,7 @@ inline void Init_system(void){
     // Step 5. Enable interrupts:
     Enable_interrupts();
 }
+
 
 
 #endif // end of F28069_MAIN_H definition

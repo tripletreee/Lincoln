@@ -53,14 +53,14 @@ void Init_ePWM2(void)
     // Setup TBCLK
     //
     EPwm2Regs.TBCTL.bit.CTRMODE = TB_COUNT_UPDOWN; // Count up
-    EPwm2Regs.TBPRD = EPWM2_TIMER_TBPRD;       // Set timer period
-    EPwm2Regs.TBCTL.bit.PHSEN = TB_ENABLE;    // Disable phase loading
-    EPwm2Regs.TBPHS.half.TBPHS = 0x0000;       // Phase is 0
-    EPwm2Regs.TBCTR = 0x0000;                  // Clear counter
-    EPwm2Regs.TBCTL.bit.PRDLD = TB_SHADOW;     // Not sure, from the example on the manual
-    EPwm2Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN; // Same as above
-    EPwm2Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;   // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
-    EPwm2Regs.TBCTL.bit.CLKDIV = TB_DIV1;
+    EPwm2Regs.TBPRD = SERVO_HALF_PERIOD;        // Set timer period
+    EPwm2Regs.TBCTL.bit.PHSEN = TB_ENABLE;      // Disable phase loading
+    EPwm2Regs.TBPHS.half.TBPHS = 0x0000;        // Phase is 0
+    EPwm2Regs.TBCTR = 0x0000;                   // Clear counter
+    EPwm2Regs.TBCTL.bit.PRDLD = TB_SHADOW;      // Not sure, from the example on the manual
+    EPwm2Regs.TBCTL.bit.SYNCOSEL = TB_SYNC_IN;  // Same as above
+    EPwm2Regs.TBCTL.bit.HSPCLKDIV = TB_DIV1;    // Clock ratio to SYSCLKOUT Watch out here, not sure if it should be TB_DIV2
+    EPwm2Regs.TBCTL.bit.CLKDIV = TB_DIV4;
 
     //
     // Setup shadow register load on ZERO
