@@ -24,20 +24,33 @@ Uint16 shadow_gimbal_position = 2680;       // gimbal angle command: [3480,1820]
 Uint16 battery_voltage_uint16 = 0;                 // battery voltage ADC result
 float battery_voltage_f = 0;
 
-int16 encoder_motor_position = 0;
-int16 encoder_motor_position_pre = 0;
-int16 encoder_gimbal_position = 0;
-int16 encoder_gimbal_position_pre = 0;
-
-int16 measured_motor_speed = 0;         // measured motor speed
-int16 measured_motor_speed_pre = 0;     // measured motor speed previous
-Uint16 measured_gimbal_angle = 0;       // measured gimbal angle
-
+int16 motor_position = 0;
+int16 motor_position_pre = 0;
+int16 motor_speed = 0;         // measured motor speed
+int16 motor_speed_pre = 0;     // measured motor speed previous
 PID_Obj PID_Motor = {3, 0.25, 0, 750, -100, 0, 0, 750, 0, 0, 0, 0};
 PID_Handle PID_Motor_Handle = &PID_Motor;
 
-PID_Obj PID_Gimbal = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
-PID_Handle PID_Gimbal_Handle = &PID_Gimbal;
+int16 gimbal_position = 0;
+int16 gimbal_position_pre = 0;
+int16 gimbal_speed = 0;
+int16 gimbal_speed_pre = 0;
+int16 gimbal_current = 0;
+int16 gimbal_current_pre = 0;
+
+int16 gimbal_phase_order;
+float gimbal_position_difference;
+int16 gimbal_direction;
+
+
+PID_Obj PID_Gimbal_Position = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Handle PID_Gimbal_Position_Handle = &PID_Gimbal_Position;
+
+PID_Obj PID_Gimbal_Speed = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Handle PID_Gimbal_Speed_Handle = &PID_Gimbal_Speed;
+
+PID_Obj PID_Gimbal_Current = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Handle PID_Gimbal_Current_Handle = &PID_Gimbal_Current;
 
 Uint16 ADC_Results[16];
 
@@ -45,6 +58,11 @@ int count_init = 0;
 int count_10khz = 0;
 int count_1khz = 0;
 Uint32 _tmp = 0;
+
+Uint32 Message_RX_Count = 0;
+Uint32 Message_RX_L = 0, Message_RX_H = 0;
+Uint32 Message_TX_L = 0, Message_TX_H = 0;
+Uint16 Message_RX_Index = 0;
 
 // system state machine
 // 0: Initial
@@ -69,9 +87,8 @@ void main(void)
 // ADC ISR 10 kHz
 __interrupt void adc_isr(void)
 {
-    int gimbal_phase_order;
-    float gimbal_position_difference;
-    int gimbal_direction;
+    // GPIO 12 is set high
+    GpioDataRegs.GPASET.bit.GPIO12 = 1;
 
     // 1 kHz control loop
     if(count_10khz == 10)
@@ -80,42 +97,47 @@ __interrupt void adc_isr(void)
 
         ADC_Get_Results(ADC_Results);
         battery_voltage_uint16 = ADC_Results[4];
-        battery_voltage_f = battery_voltage_uint16*4.834e-3;
+        battery_voltage_f = battery_voltage_uint16*BATTERY_FGAIN;
 
-        count_1khz++;
+        command_motor_speed = shadow_motor_speed;
+        command_servo_position = shadow_servo_position;
+        command_gimbal_position = shadow_gimbal_position;
 
-        // If counts to 10 (100 Hz), update the command
-        if(count_1khz >= 10){
-            command_motor_speed = shadow_motor_speed;
-            command_servo_position = shadow_servo_position;
-            command_gimbal_position = shadow_gimbal_position;
-            count_1khz = 0;
-        }
-
+        // Servo position control
         EPwm2Regs.CMPA.half.CMPA = command_servo_position;
 
-        // GPIO 12 is test point
-        GpioDataRegs.GPATOGGLE.bit.GPIO12 = 1;
-
-        PID_Control(PID_Motor_Handle, command_motor_speed, measured_motor_speed);
-
+        // Motor velocity control
+        PID_Control(PID_Motor_Handle, command_motor_speed, motor_speed);
         EPwm1Regs.CMPA.half.CMPA = PID_Motor.outputInt;
 
-        PID_Control(PID_Gimbal_Handle, command_gimbal_position, encoder_gimbal_position);
+        // Gimbal position control
+        PID_Control(PID_Gimbal_Position_Handle, command_gimbal_position, gimbal_position);
 
-        gimbal_direction = PID_Gimbal.output > 0 ? 1:0; // 0: right turn; 1: left turn;
+        // Gimbal speed control
+        PID_Control(PID_Gimbal_Speed_Handle, PID_Gimbal_Position.output, gimbal_speed);
 
-        gimbal_position_difference = abs(encoder_gimbal_position - BLDC_AB_POS) / TICKS_PER_PHASE;
-
-        gimbal_phase_order = (int)gimbal_position_difference % 6;
-
-        if (encoder_gimbal_position < BLDC_AB_POS)
-        {
-            gimbal_phase_order = 5 - gimbal_phase_order;
-        }
-        bldc_commute(gimbal_phase_order, gimbal_direction, PID_Gimbal.outputInt); //PID_Gimbal.output
     }
+
+    PID_Control(PID_Gimbal_Current_Handle, PID_Gimbal_Speed.output, gimbal_current);
+
+    gimbal_direction = PID_Gimbal_Speed.output > 0 ? 1:0; // 0: right turn; 1: left turn;
+
+    gimbal_position_difference = abs(gimbal_position - BLDC_AB_POS) * PHASE_PER_TICKS;
+
+    gimbal_phase_order = (int)gimbal_position_difference % 6;
+
+    if (gimbal_position < BLDC_AB_POS)
+    {
+        gimbal_phase_order = 5 - gimbal_phase_order;
+    }
+
+    // BLDC commute
+    BLDC_Commute(gimbal_phase_order, gimbal_direction, PID_Gimbal_Current.outputInt);
+
     count_10khz++;
+
+    // GPIO 12 is test point
+    GpioDataRegs.GPACLEAR.bit.GPIO12 = 1;
 
     //
     // Clear ADCINT1 flag reinitialize for next SOC
@@ -150,37 +172,36 @@ __interrupt void ecap1_isr(void){
 
     if(duty_count > 15 && duty_count < 4112){ // if this is a valid frame
 
-        encoder_motor_position_pre = encoder_motor_position;
+        motor_position_pre = motor_position;
 
-        encoder_motor_position = duty_count - 16;
+        motor_position = duty_count - 16;
 
-        measured_motor_speed_pre = measured_motor_speed;
+        motor_speed_pre = motor_speed;
 
-        if( abs(encoder_motor_position - encoder_motor_position_pre ) < 2000)
+        if( abs(motor_position - motor_position_pre ) < 2000)
         {
-            measured_motor_speed = encoder_motor_position_pre - encoder_motor_position;
+            motor_speed = motor_position_pre - motor_position;
         }
         else
         {
-            if(encoder_motor_position_pre < 2000)
+            if(motor_position_pre < 2000)
             { // car is moving forward
-                measured_motor_speed = encoder_motor_position_pre + 4096 - encoder_motor_position;
+                motor_speed = motor_position_pre + 4096 - motor_position;
             }
             else{
-                measured_motor_speed = encoder_motor_position_pre - 4096 - encoder_motor_position;
+                motor_speed = motor_position_pre - 4096 - motor_position;
             }
         }
-
-        measured_motor_speed = measured_motor_speed *0.7 + measured_motor_speed_pre*0.3;
+        motor_speed = motor_speed *0.7 + motor_speed_pre*0.3;
     }
     else{
-        encoder_motor_position_pre = encoder_motor_position;
-        encoder_motor_position = encoder_motor_position + measured_motor_speed;
+        motor_position_pre = motor_position;
+        motor_position = motor_position + motor_speed;
     }
 
     if(count_init<4){
         count_init++;
-        measured_motor_speed = 0;
+        motor_speed = 0;
     }
 
     ECap1Regs.ECCLR.bit.CEVT2 = 1;
@@ -210,9 +231,11 @@ __interrupt void ecap3_isr(void){
 
     if(duty_count > 15 && duty_count < 4112){
 
-        encoder_gimbal_position_pre = encoder_gimbal_position;
+        gimbal_position_pre = gimbal_position;
 
-        encoder_gimbal_position = duty_count - 16;
+        gimbal_position = duty_count - 16;
+
+        gimbal_speed = gimbal_position - gimbal_position_pre;
     }
 
     //
@@ -222,18 +245,20 @@ __interrupt void ecap3_isr(void){
 
 }
 
-Uint32 MessageReceivedCount = 0;
-Uint32 MDL;
-Uint32 MDH;
-
 
 // CAN Bus interrupt
 __interrupt void ecan0_isr(void)
 {
-    can_ReadMailBox(16, &MDL, &MDH);
-    MessageReceivedCount++;
-    _tmp++;
-    can_SendMailBox(0, _tmp, 0x12345678); // send mailbox0
+    can_ReadMailBox(16, &Message_RX_L, &Message_RX_H);
+    Message_RX_Index = Message_RX_L >> 16;
+
+    Message_TX_L  = (Message_RX_L & 0xff00) | motor_speed;
+    Message_TX_H  = ((Uint32) gimbal_position) << 16 | battery_voltage_uint16;
+
+    Message_RX_Count++;
+
+    can_SendMailBox(0, Message_TX_L, Message_TX_H); // send mailbox0
+
     ECanaRegs.CANRMP.bit.RMP16 = 1; ////PieCtrlRegs.PIEACK.bit.ACK9 = 1;    // Enables PIE to drive a pulse into the CPU
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP9;
     return;

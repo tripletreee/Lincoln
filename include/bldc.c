@@ -11,28 +11,12 @@ void Init_Motor_Drvs(void){
     GpioDataRegs.GPASET.bit.GPIO20 = 1;
 
     // Set the DRV8305 current amplifier gain
-    // 0x00 is x0; 0x2A is x40; 0x3F is x80
+    // 0x00 is x10; 0x2A is x40; 0x3F is x80
     SpiaRegs.SPITXBUF = 0<<15 | (0xa<<11) | 0x3F;
 }
 
-int bldc_calculate_phase(int16 position){
-    // A-B: 0
-    // C-B: 1
-    // C-A: 2
-    // B-A: 3
-    // B-C: 4
-    // A-C: 5
 
-    int phase_order;
-    float position_difference;
-
-    position_difference = abs(position - BLDC_AB_POS);
-    position_difference = position_difference /  TICKS_PER_PHASE;
-
-    return phase_order;
-}
-
-void bldc_commute(int phase_order, int direction, int PWM){
+void BLDC_Commute(int phase_order, int direction, int PWM){
 
     if((phase_order == 1) && (direction == 0) || (phase_order == 4) && (direction == 1)){
         // A -> B

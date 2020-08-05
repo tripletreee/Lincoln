@@ -29,4 +29,7 @@ PWMs are synced and PWM1 triggers ADC sampling at 10kHz.
 
 # CAN Bus Protocol
 CAN bus will give a 8-byte answer:
-index | motor_speed | gimbal_position | battery_voltage| 0x00000000
+index | motor_speed | gimbal_position | battery_voltage
+
+HOST should send a 8-byte command:
+index | motor_speed | gimbal_position | servo_position

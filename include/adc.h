@@ -10,6 +10,7 @@
 #define ADC_OFFSET_IA 2012
 #define ADC_OFFSET_IB 2012
 #define ADC_OFFSET_IC 2012
+#define BATTERY_FGAIN 4.834e-3
 
 void Init_ADC(void);
 
