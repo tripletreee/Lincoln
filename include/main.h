@@ -160,7 +160,7 @@ inline void Enable_interrupts(void){
 
 }
 
-inline void Init_system(void){
+inline void Init_System(void){
 
     // Step 1. Initialize System Control:
     InitSysCtrl();
@@ -186,6 +186,7 @@ inline void Init_system(void){
     Init_ePWMs();       // Initialize the ePWM modules
     Init_eCAPs();       // Initialize the eCAP modules
     Init_eCANs();       // Initialize the eCAN modules
+    Init_SPI();         // Initialize the SPI module
 
     // Configure CPU-Timer 0 to interrupt every 500 milliseconds:
     // 90MHz CPU Freq, 1 millisecond Period (in uSeconds)

@@ -12,7 +12,7 @@
 
 int bldc_calculate_phase(int16 position);
 void bldc_commute(int phase_order, int direction, int PWM);
-void bldc_enable_drv(void);
+void Init_Motor_Drvs(void);
 
 #endif // end of F28069_BLDC_H definition
 

@@ -1,6 +1,7 @@
 #include "bldc.h"
+#include "spi.h"
 
-void bldc_enable_drv(void){
+void Init_Motor_Drvs(void){
     _delay(400000);
 
     // Enable the DRV8305 for gimbal
@@ -8,6 +9,10 @@ void bldc_enable_drv(void){
 
     // Release the brake pin for motor
     GpioDataRegs.GPASET.bit.GPIO20 = 1;
+
+    // Set the DRV8305 current amplifier gain
+    // 0x00 is x0; 0x2A is x40; 0x3F is x80
+    SpiaRegs.SPITXBUF = 0<<15 | (0xa<<11) | 0x3F;
 }
 
 int bldc_calculate_phase(int16 position){

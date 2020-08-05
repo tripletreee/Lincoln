@@ -56,9 +56,9 @@ int state_machine = 0;
 void main(void)
 {
     // Initialize the system
-    Init_system();
+    Init_System();
 
-    bldc_enable_drv();
+    Init_Motor_Drvs();
 
     // Forever loop
     for(;;){

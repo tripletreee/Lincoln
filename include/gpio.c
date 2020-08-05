@@ -32,6 +32,11 @@ void Init_GPIO(void)
     GpioCtrlRegs.GPAPUD.bit.GPIO11 = 1;     // Disable pull-up on GPIO11 (EPWM6B)
     GpioCtrlRegs.GPAMUX1.bit.GPIO11 = 1;    // Configure GPIO11 as EPWM6B
 
+    GpioCtrlRegs.GPAMUX2.bit.GPIO16 = 1;    // Configure GPIO16 as SPISIMOA
+    GpioCtrlRegs.GPAMUX2.bit.GPIO17 = 1;    // Configure GPIO16 as SPISOMIA
+    GpioCtrlRegs.GPAMUX2.bit.GPIO18 = 1;    // Configure GPIO16 as SPICLKA
+    GpioCtrlRegs.GPAMUX2.bit.GPIO19 = 1;    // Configure GPIO16 as SPISTEA
+
     GpioCtrlRegs.GPAMUX2.bit.GPIO20 = 0;    // Configure GPIO20 as GPIO (Motor Brake)
     GpioCtrlRegs.GPADIR.bit.GPIO20 = 1;     // GPIO20 = output
     GpioDataRegs.GPACLEAR.bit.GPIO20 = 1;   // output set low (low: brake; high: release)
