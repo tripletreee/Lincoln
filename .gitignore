@@ -2,10 +2,10 @@
 /.vscode/
 /.launches/
 /Debug/
+/Flash/
 
 ##ignore these files##
 .classpath
 .settings
 .DS_Store
 .DS_Store
-.cproject
