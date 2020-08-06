@@ -13,7 +13,7 @@
 
 int16  command_motor_speed = 0;             // motor speed command: [0,1000]
 Uint16 command_servo_position = 17250;      // servo angle command: [12000,22500]
-Uint16 command_gimbal_position = 2645;      // gimbal angle command: [3480,1820]
+Uint16 command_gimbal_position = 2680;      // gimbal angle command: [3480,1820]
 
 int16  shadow_motor_speed = 0;              // motor speed command: [0,1000]
 Uint16 shadow_servo_position = 17250;       // servo angle command: [12000,22500]
@@ -37,11 +37,6 @@ int16 gimbal_speed = 0;
 int16 gimbal_speed_pre = 0;
 int16 gimbal_current = 0;
 int16 gimbal_current_pre = 0;
-
-int16 gimbal_phase_order;
-float gimbal_position_difference;
-int16 gimbal_direction;
-
 
 PID_Obj PID_Gimbal_Position = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Position_Handle = &PID_Gimbal_Position;
@@ -87,6 +82,11 @@ void main(void)
 // ADC ISR 10 kHz
 __interrupt void adc_isr(void)
 {
+
+    int16 gimbal_phase_order;
+    float gimbal_position_difference;
+    int16 gimbal_direction;
+
     // GPIO 12 is set high
     GpioDataRegs.GPASET.bit.GPIO12 = 1;
 
@@ -157,7 +157,6 @@ __interrupt void cpu_timer0_isr(void)
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
 }
 
-
 // Motor encoder ISR, update the motor speed
 __interrupt void ecap1_isr(void){
 
@@ -213,7 +212,6 @@ __interrupt void ecap1_isr(void){
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP4;
 }
 
-
 // Gimbal encoder ISR, update the gimbal position
 __interrupt void ecap3_isr(void){
 
@@ -244,7 +242,6 @@ __interrupt void ecap3_isr(void){
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP4;
 
 }
-
 
 // CAN Bus interrupt
 __interrupt void ecan0_isr(void)
