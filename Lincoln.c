@@ -88,7 +88,7 @@ float gimbal_position_difference = 0;
 int16 gimbal_direction = 0;
 int16 gimbal_direction_pre = 0;
 
-// ADC ISR 10 kHz
+// ADC ISR 10 kHz. The main ISR for control loop
 __interrupt void adc_isr(void)
 {
     // GPIO 12 is set high
@@ -160,8 +160,7 @@ __interrupt void adc_isr(void)
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;   // Acknowledge interrupt to PIE
 }
 
-// cpu_timer0_isr. The main ISR for control loop
-// Main ISR frequency is 1 kHz
+// cpu_timer0_isr, 1 kHz
 __interrupt void cpu_timer0_isr(void)
 {
     CpuTimer0.InterruptCount++;
@@ -170,7 +169,7 @@ __interrupt void cpu_timer0_isr(void)
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
 }
 
-// Motor encoder ISR, update the motor speed
+// Motor encoder ISR, update the motor position and velocity
 __interrupt void ecap1_isr(void){
 
     Uint32 ecap1_t1;
@@ -225,7 +224,7 @@ __interrupt void ecap1_isr(void){
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP4;
 }
 
-// Gimbal encoder ISR, update the gimbal position
+// Gimbal encoder ISR, update the gimbal position and velocity
 __interrupt void ecap3_isr(void){
 
     Uint32 ecap3_t1;
