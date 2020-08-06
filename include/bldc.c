@@ -16,7 +16,7 @@ void Init_Motor_Drvs(void){
 }
 
 
-void BLDC_Commute(int phase_order, int direction, int PWM){
+void BLDC_Commute(int *current_pointer, int phase_order, int direction, int PWM){
 
     if((phase_order == 1) && (direction == 0) || (phase_order == 4) && (direction == 1)){
         // A -> B
@@ -26,6 +26,7 @@ void BLDC_Commute(int phase_order, int direction, int PWM){
         EPwm5Regs.CMPB = 0;
         EPwm6Regs.CMPA.half.CMPA = 0;
         EPwm6Regs.CMPB = GIMBAL_HIGH_VALUE;
+        *current_pointer = 1;
     }
     else if((phase_order == 2) && (direction == 0) || (phase_order == 5) && (direction == 1)){
         // C -> B
@@ -35,6 +36,7 @@ void BLDC_Commute(int phase_order, int direction, int PWM){
         EPwm5Regs.CMPB = 0;
         EPwm6Regs.CMPA.half.CMPA = PWM;
         EPwm6Regs.CMPB = PWM;
+        *current_pointer = 1;
     }
     else if((phase_order == 3) && (direction == 0) || (phase_order == 0) && (direction == 1)){
         // C -> A
@@ -44,6 +46,7 @@ void BLDC_Commute(int phase_order, int direction, int PWM){
         EPwm5Regs.CMPB = GIMBAL_HIGH_VALUE;
         EPwm6Regs.CMPA.half.CMPA = PWM;
         EPwm6Regs.CMPB = PWM;
+        *current_pointer = 0;
     }
     else if((phase_order == 4) && (direction == 0) || (phase_order == 1) && (direction == 1)){
         // B -> A
@@ -53,6 +56,7 @@ void BLDC_Commute(int phase_order, int direction, int PWM){
         EPwm5Regs.CMPB = PWM;
         EPwm6Regs.CMPA.half.CMPA = 0;
         EPwm6Regs.CMPB = GIMBAL_HIGH_VALUE;
+        *current_pointer = 0;
     }
     else if((phase_order == 5) && (direction == 0) || (phase_order == 2) && (direction == 1)){
         // B -> C
@@ -62,6 +66,7 @@ void BLDC_Commute(int phase_order, int direction, int PWM){
         EPwm5Regs.CMPB = PWM;
         EPwm6Regs.CMPA.half.CMPA = 0;
         EPwm6Regs.CMPB = 0;
+        *current_pointer = 2;
     }
     else if((phase_order == 0) && (direction == 0) || (phase_order == 3) && (direction == 1)){
         // A -> C
@@ -71,5 +76,6 @@ void BLDC_Commute(int phase_order, int direction, int PWM){
         EPwm5Regs.CMPB = GIMBAL_HIGH_VALUE;
         EPwm6Regs.CMPA.half.CMPA = 0;
         EPwm6Regs.CMPB = 0;
+        *current_pointer = 2;
     }
 }

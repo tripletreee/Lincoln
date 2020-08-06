@@ -9,9 +9,9 @@
 #define BLDC_POLES 14.0
 #define BLDC_TICKS 4096.0
 #define TICKS_PER_PHASE (BLDC_TICKS / (BLDC_POLES/2) / 6)
-#define PHASE_PER_TICKS (1/TICKS_PER_PHASE)
+#define PHASES_PER_TICK (1/TICKS_PER_PHASE)
 
-void BLDC_Commute(int phase_order, int direction, int PWM);
+void BLDC_Commute(int *current_pointer, int phase_order, int direction, int PWM);
 void Init_Motor_Drvs(void);
 
 #endif // end of F28069_BLDC_H definition

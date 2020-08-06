@@ -60,7 +60,7 @@ inline void Init_PIE_Vector_Table(void){
     // ISR functions found within this file.
     //
     EALLOW;    // This is needed to write to EALLOW protected registers
-    PieVectTable.TINT0 = &cpu_timer0_isr; // Start the CPU timer
+    //PieVectTable.TINT0 = &cpu_timer0_isr; // Start the CPU timer
     PieVectTable.ECAP1_INT = &ecap1_isr;
     PieVectTable.ECAP3_INT = &ecap3_isr;
     PieVectTable.ECAN0INTA = &ecan0_isr;
@@ -109,7 +109,7 @@ inline void Enable_interrupts(void){
     //
     // Enable CPU timer TINT0 in the PIE: Group 1 interrupt 7
     //
-    PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
+    //PieCtrlRegs.PIEIER1.bit.INTx7 = 1;
 
  
     //
@@ -174,8 +174,6 @@ inline void Init_System(void){
 
     // Step 2. Initalize GPIO:
     Init_GPIO();  // Initialize the GPIO
-
-
 
     // Step 3. Clear all interrupts and initialize PIE vector table:
     Init_PIE_Vector_Table();

@@ -48,6 +48,7 @@ PID_Obj PID_Gimbal_Current = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0}
 PID_Handle PID_Gimbal_Current_Handle = &PID_Gimbal_Current;
 
 Uint16 ADC_Results[16];
+int *current_pointer;
 
 int count_init = 0;
 int count_10khz = 0;
@@ -96,6 +97,9 @@ __interrupt void adc_isr(void)
         count_10khz = 0;
 
         ADC_Get_Results(ADC_Results);
+        gimbal_current_pre = gimbal_current;
+        gimbal_current = ADC_Results[*current_pointer + 1];
+
         battery_voltage_uint16 = ADC_Results[4];
         battery_voltage_f = battery_voltage_uint16*BATTERY_FGAIN;
 
@@ -122,7 +126,7 @@ __interrupt void adc_isr(void)
 
     gimbal_direction = PID_Gimbal_Speed.output > 0 ? 1:0; // 0: right turn; 1: left turn;
 
-    gimbal_position_difference = abs(gimbal_position - BLDC_AB_POS) * PHASE_PER_TICKS;
+    gimbal_position_difference = abs(gimbal_position - BLDC_AB_POS) * PHASES_PER_TICK;
 
     gimbal_phase_order = (int)gimbal_position_difference % 6;
 
@@ -132,7 +136,7 @@ __interrupt void adc_isr(void)
     }
 
     // BLDC commute
-    BLDC_Commute(gimbal_phase_order, gimbal_direction, PID_Gimbal_Current.outputInt);
+    BLDC_Commute(current_pointer, gimbal_phase_order, gimbal_direction, PID_Gimbal_Current.outputInt);
 
     count_10khz++;
 
