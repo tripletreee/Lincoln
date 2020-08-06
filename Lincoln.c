@@ -28,6 +28,8 @@ int16 motor_position = 0;
 int16 motor_position_pre = 0;
 int16 motor_speed = 0;         // measured motor speed
 int16 motor_speed_pre = 0;     // measured motor speed previous
+Uint16 motor_pwm = 0;     // measured motor speed previous
+Uint16 motor_pwm_pre = 0;     // measured motor speed previous
 PID_Obj PID_Motor = {3, 0.25, 0, 750, -100, 0, 0, 750, 0, 0, 0, 0};
 PID_Handle PID_Motor_Handle = &PID_Motor;
 
@@ -37,14 +39,15 @@ int16 gimbal_speed = 0;
 int16 gimbal_speed_pre = 0;
 int16 gimbal_current = 0;
 int16 gimbal_current_pre = 0;
+int gimbal_current_phase = 0;
 
-PID_Obj PID_Gimbal_Position = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Obj PID_Gimbal_Position = {5, 0, 50, 800, -800, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Position_Handle = &PID_Gimbal_Position;
 
-PID_Obj PID_Gimbal_Speed = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Obj PID_Gimbal_Speed = {0.6, 0.02, 0, 1000, -1000, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Speed_Handle = &PID_Gimbal_Speed;
 
-PID_Obj PID_Gimbal_Current = {10, 1, 120, 400, -400, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Obj PID_Gimbal_Current = {1, 0.005, 0, 800, -800, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Current_Handle = &PID_Gimbal_Current;
 
 Uint16 ADC_Results[16];
@@ -74,20 +77,19 @@ void main(void)
 
     Init_Motor_Drvs();
 
+    current_pointer =  &gimbal_current_phase;
+
     // Forever loop
     for(;;){
     }
 }
-
+int16 gimbal_phase_order;
+float gimbal_position_difference;
+int16 gimbal_direction;
 
 // ADC ISR 10 kHz
 __interrupt void adc_isr(void)
 {
-
-    int16 gimbal_phase_order;
-    float gimbal_position_difference;
-    int16 gimbal_direction;
-
     // GPIO 12 is set high
     GpioDataRegs.GPASET.bit.GPIO12 = 1;
 
@@ -98,10 +100,11 @@ __interrupt void adc_isr(void)
 
         ADC_Get_Results(ADC_Results);
         gimbal_current_pre = gimbal_current;
-        gimbal_current = ADC_Results[*current_pointer + 1];
+        gimbal_current = 2048 - ADC_Results[*current_pointer + 1];
+        gimbal_current = gimbal_current_pre*0.5 + 0.5*gimbal_current;
 
         battery_voltage_uint16 = ADC_Results[4];
-        battery_voltage_f = battery_voltage_uint16*BATTERY_FGAIN;
+        battery_voltage_f = battery_voltage_f*0.99 + 0.01*battery_voltage_uint16*BATTERY_FGAIN;
 
         command_motor_speed = shadow_motor_speed;
         command_servo_position = shadow_servo_position;
@@ -112,7 +115,10 @@ __interrupt void adc_isr(void)
 
         // Motor velocity control
         PID_Control(PID_Motor_Handle, command_motor_speed, motor_speed);
-        EPwm1Regs.CMPA.half.CMPA = PID_Motor.outputInt;
+        motor_pwm_pre = motor_pwm;
+        motor_pwm = PID_Motor.outputInt;
+        motor_pwm = motor_pwm_pre*0.6 + 0.4*motor_pwm;
+        EPwm1Regs.CMPA.half.CMPA = motor_pwm;
 
         // Gimbal position control
         PID_Control(PID_Gimbal_Position_Handle, command_gimbal_position, gimbal_position);
@@ -122,7 +128,7 @@ __interrupt void adc_isr(void)
 
     }
 
-    PID_Control(PID_Gimbal_Current_Handle, PID_Gimbal_Speed.output, gimbal_current);
+    PID_Control(PID_Gimbal_Current_Handle, abs(PID_Gimbal_Speed.output), gimbal_current);
 
     gimbal_direction = PID_Gimbal_Speed.output > 0 ? 1:0; // 0: right turn; 1: left turn;
 
@@ -236,6 +242,8 @@ __interrupt void ecap3_isr(void){
         gimbal_position_pre = gimbal_position;
 
         gimbal_position = duty_count - 16;
+
+        gimbal_speed_pre = gimbal_speed;
 
         gimbal_speed = gimbal_position - gimbal_position_pre;
     }
