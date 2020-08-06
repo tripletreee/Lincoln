@@ -83,9 +83,10 @@ void main(void)
     for(;;){
     }
 }
-int16 gimbal_phase_order;
-float gimbal_position_difference;
-int16 gimbal_direction;
+int16 gimbal_phase_order = 0;
+float gimbal_position_difference = 0;
+int16 gimbal_direction = 0;
+int16 gimbal_direction_pre = 0;
 
 // ADC ISR 10 kHz
 __interrupt void adc_isr(void)
@@ -97,14 +98,6 @@ __interrupt void adc_isr(void)
     if(count_10khz == 10)
     {
         count_10khz = 0;
-
-        ADC_Get_Results(ADC_Results);
-        gimbal_current_pre = gimbal_current;
-        gimbal_current = 2048 - ADC_Results[*current_pointer + 1];
-        gimbal_current = gimbal_current_pre*0.5 + 0.5*gimbal_current;
-
-        battery_voltage_uint16 = ADC_Results[4];
-        battery_voltage_f = battery_voltage_f*0.99 + 0.01*battery_voltage_uint16*BATTERY_FGAIN;
 
         command_motor_speed = shadow_motor_speed;
         command_servo_position = shadow_servo_position;
@@ -128,9 +121,19 @@ __interrupt void adc_isr(void)
 
     }
 
-    PID_Control(PID_Gimbal_Current_Handle, abs(PID_Gimbal_Speed.output), gimbal_current);
+    ADC_Get_Results(ADC_Results);
+    gimbal_direction_pre = gimbal_direction;
+    gimbal_current_pre = gimbal_current;
+    gimbal_current = 2048 - ADC_Results[*current_pointer + 1];
+    gimbal_current = (gimbal_direction_pre) == 0 ? gimbal_current_pre : -gimbal_current_pre;
 
-    gimbal_direction = PID_Gimbal_Speed.output > 0 ? 1:0; // 0: right turn; 1: left turn;
+    //gimbal_current = gimbal_current_pre*0.5 + 0.5*gimbal_current;
+    battery_voltage_uint16 = ADC_Results[4];
+    battery_voltage_f = battery_voltage_f*0.99 + 0.01*battery_voltage_uint16*BATTERY_FGAIN;
+
+    PID_Control(PID_Gimbal_Current_Handle, PID_Gimbal_Speed.output, gimbal_current);
+
+    gimbal_direction = PID_Gimbal_Current.output < 0 ? 0:1; // 0: right turn; 1: left turn;
 
     gimbal_position_difference = abs(gimbal_position - BLDC_AB_POS) * PHASES_PER_TICK;
 
@@ -201,7 +204,7 @@ __interrupt void ecap1_isr(void){
                 motor_speed = motor_position_pre - 4096 - motor_position;
             }
         }
-        motor_speed = motor_speed *0.7 + motor_speed_pre*0.3;
+        motor_speed = motor_speed_pre*0.3 + 0.7*motor_speed;
     }
     else{
         motor_position_pre = motor_position;
@@ -232,9 +235,6 @@ __interrupt void ecap3_isr(void){
     ecap3_t1 = ECap3Regs.CAP1;
     ecap3_t2 = ECap3Regs.CAP2;
 
-    ECap3Regs.ECCLR.bit.CEVT2 = 1;
-    ECap3Regs.ECCLR.bit.INT = 1;
-
     duty_count = ((float)ecap3_t1 / (float)ecap3_t2)*4119;
 
     if(duty_count > 15 && duty_count < 4112){
@@ -247,6 +247,9 @@ __interrupt void ecap3_isr(void){
 
         gimbal_speed = gimbal_position - gimbal_position_pre;
     }
+
+    ECap3Regs.ECCLR.bit.CEVT2 = 1;
+    ECap3Regs.ECCLR.bit.INT = 1;
 
     //
     // Acknowledge this interrupt to receive more interrupts from group 4
