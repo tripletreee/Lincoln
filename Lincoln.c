@@ -69,12 +69,12 @@ int state_machine = 0;
 
 void main(void)
 {
-    // Initialize the system
+    // Initialize the DSP system
     Init_System();
 
     Init_Motor_Drvs();
 
-    current_pointer =  &gimbal_current_phase;
+    current_pointer = &gimbal_current_phase;
 
     // Forever loop
     for(;;){
@@ -91,24 +91,24 @@ __interrupt void adc_isr(void)
     // GPIO 12 is set high
     GpioDataRegs.GPASET.bit.GPIO12 = 1;
 
+    command_motor_speed = shadow_motor_speed;
+    command_servo_position = shadow_servo_position;
+    command_gimbal_position = shadow_gimbal_position;
+
     // 1 kHz control loop
     if(count_10khz == 10)
     {
         count_10khz = 0;
 
-        command_motor_speed = shadow_motor_speed;
-        command_servo_position = shadow_servo_position;
-        command_gimbal_position = shadow_gimbal_position;
-
         // Servo position control
-        EPwm2Regs.CMPA.half.CMPA = command_servo_position;
+        EPwm2Regs.CMPA.half.CMPA = SERVO_HALF_PERIOD - command_servo_position;
 
         // Motor velocity control
         PID_Control(PID_Motor_Handle, command_motor_speed, motor_speed);
         motor_pwm_pre = motor_pwm;
         motor_pwm = PID_Motor.outputInt;
         motor_pwm = motor_pwm_pre*0.6 + 0.4*motor_pwm;
-        EPwm1Regs.CMPA.half.CMPA = motor_pwm;
+        EPwm1Regs.CMPA.half.CMPA = MOTOR_HALF_PERIOD - motor_pwm;
 
         // Gimbal position control
         PID_Control(PID_Gimbal_Position_Handle, command_gimbal_position, gimbal_position);

@@ -38,10 +38,10 @@ void Init_ePWM1(void)
     //
     // Set Actions
     //
-    EPwm1Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm1Regs.AQCTLA.bit.CAD = AQ_SET;
-    EPwm1Regs.AQCTLB.bit.CBU = AQ_SET;
-    EPwm1Regs.AQCTLB.bit.CBD = AQ_CLEAR;
+    EPwm1Regs.AQCTLA.bit.CAU = AQ_SET;
+    EPwm1Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm1Regs.AQCTLB.bit.CBU = AQ_CLEAR;
+    EPwm1Regs.AQCTLB.bit.CBD = AQ_SET;
 }
 
 //
@@ -78,10 +78,10 @@ void Init_ePWM2(void)
     //
     // Set Actions
     //
-    EPwm2Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm2Regs.AQCTLA.bit.CAD = AQ_SET;
-    EPwm2Regs.AQCTLB.bit.CBU = AQ_SET;
-    EPwm2Regs.AQCTLB.bit.CBD = AQ_CLEAR;
+    EPwm2Regs.AQCTLA.bit.CAU = AQ_SET;
+    EPwm2Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm2Regs.AQCTLB.bit.CBU = AQ_CLEAR;
+    EPwm2Regs.AQCTLB.bit.CBD = AQ_SET;
 }
 
 //
@@ -121,10 +121,10 @@ void Init_ePWM3(void)
     //
     // Set Actions PWMA in Active high mode, PWMB in Active low mode
     //
-    EPwm3Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm3Regs.AQCTLA.bit.CAD = AQ_SET;
-    EPwm3Regs.AQCTLB.bit.CBU = AQ_SET;
-    EPwm3Regs.AQCTLB.bit.CBD = AQ_CLEAR;
+    EPwm3Regs.AQCTLA.bit.CAU = AQ_SET;
+    EPwm3Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm3Regs.AQCTLB.bit.CBU = AQ_CLEAR;
+    EPwm3Regs.AQCTLB.bit.CBD = AQ_SET;
 }
 
 //
@@ -164,10 +164,10 @@ void Init_ePWM4(void)
     //
     // Set Actions PWMA in Active high mode, PWMB in Active low mode
     //
-    EPwm4Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm4Regs.AQCTLA.bit.CAD = AQ_SET;
-    EPwm4Regs.AQCTLB.bit.CBU = AQ_SET;
-    EPwm4Regs.AQCTLB.bit.CBD = AQ_CLEAR;
+    EPwm4Regs.AQCTLA.bit.CAU = AQ_SET;
+    EPwm4Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm4Regs.AQCTLB.bit.CBU = AQ_CLEAR;
+    EPwm4Regs.AQCTLB.bit.CBD = AQ_SET;
 }
 
 
@@ -208,10 +208,10 @@ void Init_ePWM5(void)
     //
     // Set Actions PWMA in Active high mode, PWMB in Active low mode
     //
-    EPwm5Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm5Regs.AQCTLA.bit.CAD = AQ_SET;
-    EPwm5Regs.AQCTLB.bit.CBU = AQ_SET;
-    EPwm5Regs.AQCTLB.bit.CBD = AQ_CLEAR;
+    EPwm5Regs.AQCTLA.bit.CAU = AQ_SET;
+    EPwm5Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm5Regs.AQCTLB.bit.CBU = AQ_CLEAR;
+    EPwm5Regs.AQCTLB.bit.CBD = AQ_SET;
 }
 
 
@@ -252,10 +252,10 @@ void Init_ePWM6(void)
     //
     // Set Actions PWMA in Active high mode, PWMB in Active low mode
     //
-    EPwm6Regs.AQCTLA.bit.CAU = AQ_CLEAR;
-    EPwm6Regs.AQCTLA.bit.CAD = AQ_SET;
-    EPwm6Regs.AQCTLB.bit.CBU = AQ_SET;
-    EPwm6Regs.AQCTLB.bit.CBD = AQ_CLEAR;
+    EPwm6Regs.AQCTLA.bit.CAU = AQ_SET;
+    EPwm6Regs.AQCTLA.bit.CAD = AQ_CLEAR;
+    EPwm6Regs.AQCTLB.bit.CBU = AQ_CLEAR;
+    EPwm6Regs.AQCTLB.bit.CBD = AQ_SET;
 }
 
 void Init_ePWMs(void)
