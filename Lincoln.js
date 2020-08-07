@@ -2,7 +2,6 @@ expRemoveAll();
 
 expAdd ("PID_Motor");
 expAdd ("PID_Gimbal_Position");
-expAdd ("PID_Gimbal_Speed");
 expAdd ("PID_Gimbal_Current");
 
 expAdd ("shadow_motor_speed");

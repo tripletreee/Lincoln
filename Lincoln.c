@@ -24,8 +24,8 @@ Uint16 shadow_gimbal_position = 2680;       // gimbal angle command: [3480,1820]
 Uint16 battery_voltage_uint16 = 0;                 // battery voltage ADC result
 float battery_voltage_f = 0;
 
-int16 motor_position = 0;
-int16 motor_position_pre = 0;
+int16 motor_position = 2680;
+int16 motor_position_pre = 2680;
 int16 motor_speed = 0;         // measured motor speed
 int16 motor_speed_pre = 0;     // measured motor speed previous
 Uint16 motor_pwm = 0;     // measured motor speed previous
@@ -41,13 +41,10 @@ int16 gimbal_current = 0;
 int16 gimbal_current_pre = 0;
 int gimbal_current_phase = 0;
 
-PID_Obj PID_Gimbal_Position = {5, 0, 50, 800, -800, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Obj PID_Gimbal_Position = {6, 0.1, 60, 1000, -1000, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Position_Handle = &PID_Gimbal_Position;
 
-PID_Obj PID_Gimbal_Speed = {0.6, 0.02, 0, 1000, -1000, 0, 0, 1500, -1500, 0, 0, 0};
-PID_Handle PID_Gimbal_Speed_Handle = &PID_Gimbal_Speed;
-
-PID_Obj PID_Gimbal_Current = {1, 0.005, 0, 800, -800, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Obj PID_Gimbal_Current = {1, 0.002, 0, 1300, -1300, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Current_Handle = &PID_Gimbal_Current;
 
 Uint16 ADC_Results[16];
@@ -116,22 +113,20 @@ __interrupt void adc_isr(void)
         // Gimbal position control
         PID_Control(PID_Gimbal_Position_Handle, command_gimbal_position, gimbal_position);
 
-        // Gimbal speed control
-        PID_Control(PID_Gimbal_Speed_Handle, PID_Gimbal_Position.output, gimbal_speed);
-
     }
 
     ADC_Get_Results(ADC_Results);
     gimbal_direction_pre = gimbal_direction;
     gimbal_current_pre = gimbal_current;
     gimbal_current = 2048 - ADC_Results[*current_pointer + 1];
-    gimbal_current = (gimbal_direction_pre) == 0 ? gimbal_current_pre : -gimbal_current_pre;
+    gimbal_current = (gimbal_direction_pre) == 1 ? gimbal_current : -gimbal_current;
 
-    //gimbal_current = gimbal_current_pre*0.5 + 0.5*gimbal_current;
+    //gimbal_current = gimbal_current_pre*0.9 + 0.1*gimbal_current;
+
     battery_voltage_uint16 = ADC_Results[4];
     battery_voltage_f = battery_voltage_f*0.99 + 0.01*battery_voltage_uint16*BATTERY_FGAIN;
 
-    PID_Control(PID_Gimbal_Current_Handle, PID_Gimbal_Speed.output, gimbal_current);
+    PID_Control(PID_Gimbal_Current_Handle, PID_Gimbal_Position.output, gimbal_current);
 
     gimbal_direction = PID_Gimbal_Current.output < 0 ? 0:1; // 0: right turn; 1: left turn;
 
@@ -224,7 +219,7 @@ __interrupt void ecap1_isr(void){
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP4;
 }
 
-// Gimbal encoder ISR, update the gimbal position and velocity
+// Gimbal encoder ISR, update the gimbal position
 __interrupt void ecap3_isr(void){
 
     Uint32 ecap3_t1;
@@ -242,9 +237,7 @@ __interrupt void ecap3_isr(void){
 
         gimbal_position = duty_count - 16;
 
-        gimbal_speed_pre = gimbal_speed;
-
-        gimbal_speed = gimbal_position - gimbal_position_pre;
+        gimbal_position = gimbal_position_pre*0.1 + 0.9*gimbal_position;
     }
 
     ECap3Regs.ECCLR.bit.CEVT2 = 1;
