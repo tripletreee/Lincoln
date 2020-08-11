@@ -19,6 +19,8 @@ void Init_ePWM1(void);
 
 void Init_ePWM2(void);
 
+void Init_ePWM3(void);
+
 void Init_ePWM4(void);
 
 void Init_ePWM5(void);
