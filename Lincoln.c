@@ -121,7 +121,7 @@ __interrupt void adc_isr(void)
     gimbal_current = 2048 - ADC_Results[*current_pointer + 1];
     gimbal_current = (gimbal_direction_pre) == 1 ? gimbal_current : -gimbal_current;
 
-    //gimbal_current = gimbal_current_pre*0.9 + 0.1*gimbal_current;
+    gimbal_current = gimbal_current_pre*0.1 + 0.9*gimbal_current;
 
     battery_voltage_uint16 = ADC_Results[4];
     battery_voltage_f = battery_voltage_f*0.99 + 0.01*battery_voltage_uint16*BATTERY_FGAIN;
@@ -140,7 +140,7 @@ __interrupt void adc_isr(void)
     }
 
     // BLDC commute
-    BLDC_Commute(current_pointer, gimbal_phase_order, gimbal_direction, PID_Gimbal_Current.outputInt);
+    BLDC_Commute(current_pointer, gimbal_phase_order, gimbal_direction, GIMBAL_HALF_PERIOD - PID_Gimbal_Current.outputInt);
 
     count_10khz++;
 
@@ -237,7 +237,7 @@ __interrupt void ecap3_isr(void){
 
         gimbal_position = duty_count - 16;
 
-        gimbal_position = gimbal_position_pre*0.1 + 0.9*gimbal_position;
+        gimbal_position = gimbal_position_pre*0.8 + 0.2*gimbal_position;
     }
 
     ECap3Regs.ECCLR.bit.CEVT2 = 1;
