@@ -256,11 +256,11 @@ __interrupt void ecan0_isr(void)
     can_ReadMailBox(16, &Message_RX_L, &Message_RX_H);
 
     Message_RX_Index = Message_RX_L >> 16;
-    shadow_motor_speed = Message_RX_L & 0x00ff;
+    shadow_motor_speed = Message_RX_L & 0x0000ffff;
     shadow_gimbal_position = Message_RX_H >> 16;
-    shadow_servo_position = Message_RX_H & 0x00ff;
+    shadow_servo_position = Message_RX_H & 0x0000ffff;
 
-    Message_TX_L  = (Message_RX_L & 0xff00) | motor_speed;
+    Message_TX_L  = (Message_RX_L & 0xffff0000) | motor_speed;
     Message_TX_H  = ((Uint32) gimbal_position) << 16 | battery_voltage_uint16;
 
     Message_RX_Count++;
