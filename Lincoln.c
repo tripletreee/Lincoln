@@ -24,6 +24,7 @@ Uint16 shadow_gimbal_position = 2680;       // gimbal angle command: [3480,1820]
 Uint16 battery_voltage_uint16 = 0;                 // battery voltage ADC result
 float battery_voltage_f = 0;
 
+
 int16 motor_position = 2680;
 int16 motor_position_pre = 2680;
 int16 motor_speed = 0;         // measured motor speed
@@ -56,16 +57,20 @@ int count_1khz = 0;
 Uint32 _tmp = 0;
 
 Uint32 Message_RX_Count = 0;
+Uint32 Message_TX_Count = 0;
 Uint32 Message_RX_L = 0, Message_RX_H = 0;
 Uint32 Message_TX_L = 0, Message_TX_H = 0;
 Uint16 Message_RX_Index = 0;
+
+int Message_TX_Flag = 0;
 
 // system state machine
 // 0: Initial
 // 1: online
 // 2: fault
 int state_machine = 0; 
-
+struct ECAN_REGS ECanaShadow;
+struct ECAN_REGS ECanaShadow_post;
 
 void main(void)
 {
@@ -78,6 +83,11 @@ void main(void)
 
     // Forever loop
     for(;;){
+        if(Message_TX_Flag){
+            can_SendMailBox(0, 0x01, 0x02);
+            Message_TX_Flag = 0;
+            Message_TX_Count++;
+        }
     }
 }
 int16 gimbal_phase_order = 0;
@@ -146,7 +156,6 @@ __interrupt void adc_isr(void)
 
     // GPIO 12 is test point
     GpioDataRegs.GPACLEAR.bit.GPIO12 = 1;
-
     //
     // Clear ADCINT1 flag reinitialize for next SOC
     //
@@ -250,24 +259,79 @@ __interrupt void ecap3_isr(void){
 
 }
 
+int _f = 0;
+
 // CAN Bus interrupt
 __interrupt void ecan0_isr(void)
 {
-    can_ReadMailBox(16, &Message_RX_L, &Message_RX_H);
+    ECanaShadow = ECanaRegs;
 
-    Message_RX_Index = Message_RX_L >> 16;
-    shadow_motor_speed = Message_RX_L & 0x0000ffff;
-    shadow_gimbal_position = Message_RX_H >> 16;
-    shadow_servo_position = Message_RX_H & 0x0000ffff;
+    if(ECanaShadow.CANGIF0.bit.GMIF0 == 1){
+        // mailbox interrupt
+        if(ECanaShadow.CANGIF0.bit.MIV0 == 0){
+            // if it is TX (mailbox 0) interrupt
+            ECanaShadow.CANTA.all = 0;
+            ECanaShadow.CANTA.bit.TA0 = 1;       // Clear TA0
+            ECanaRegs.CANTA.all = ECanaShadow.CANTA.all;
 
-    Message_TX_L  = (Message_RX_L & 0xffff0000) | motor_speed;
-    Message_TX_H  = ((Uint32) gimbal_position) << 16 | battery_voltage_uint16;
+//            ECanaShadow.CANTRR.all = 0;
+//            ECanaShadow.CANTRR.bit.TRR0 = 1;
+//            ECanaRegs.CANTRR.all = ECanaShadow.CANTRR.all;
 
-    Message_RX_Count++;
+        }
+        else if(ECanaShadow.CANGIF0.bit.MIV0 == 16){
 
-    can_SendMailBox(0, Message_TX_L, Message_TX_H); // send mailbox0
+            // if it is RX (mailbox 16) interrupt
+            can_ReadMailBox(16, &Message_RX_L, &Message_RX_H);
 
-    ECanaRegs.CANRMP.bit.RMP16 = 1; ////PieCtrlRegs.PIEACK.bit.ACK9 = 1;    // Enables PIE to drive a pulse into the CPU
+            Message_RX_Index = Message_RX_L >> 16;
+            shadow_motor_speed = Message_RX_L & 0x0000ffff;
+            shadow_gimbal_position = Message_RX_H >> 16;
+            shadow_servo_position = Message_RX_H & 0x0000ffff;
+
+            Message_TX_L  = (Message_RX_L & 0xffff0000) | motor_speed;
+            Message_TX_H  = ((Uint32) gimbal_position) << 16 | battery_voltage_uint16;
+
+            Message_RX_Count++;
+
+            // clear (RMP) Received-Message-Pending Register
+            ECanaShadow.CANRMP.all = 0;
+            ECanaShadow.CANRMP.bit.RMP16 = 1;
+            ECanaRegs.CANRMP.all = ECanaShadow.CANRMP.all;
+            Message_TX_Flag = 1;
+
+            //can_SendMailBox(0, Message_TX_L, Message_TX_H); // send mailbox0
+        }
+    }
+    else{
+        // other interrupt
+//        if(ECanaShadow.CANGIF0.bit.WLIF0 ){
+//            ECanaShadow.CANGIF0.all = 0;
+//            ECanaShadow.CANGIF0.bit.WLIF0 = 1;
+//        }
+//        else if(ECanaShadow.CANGIF0.bit.EPIF0){
+//            ECanaShadow.CANGIF0.all = 0;
+//            ECanaShadow.CANGIF0.bit.EPIF0 = 1;
+//        }
+//        else if(ECanaShadow.CANGIF0.bit.BOIF0){
+//            ECanaShadow.CANGIF0.all = 0;
+//            ECanaShadow.CANGIF0.bit.BOIF0 = 1;
+//        }
+//        else if(ECanaShadow.CANGIF0.bit.AAIF0){
+//            ECanaShadow.CANGIF0.all = 0;
+//            ECanaShadow.CANGIF0.bit.AAIF0 = 1;
+//        }
+//        else if(ECanaShadow.CANGIF0.bit.WDIF0){
+//            ECanaShadow.CANGIF0.all = 0;
+//            ECanaShadow.CANGIF0.bit.WDIF0 = 1;
+//        }
+
+
+    }
+    ECanaRegs.CANGIF0.all = ECanaShadow.CANGIF0.all;
+    _f = 1-_f;
+    ECanaShadow_post = ECanaRegs;
+
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP9;
     return;
 }

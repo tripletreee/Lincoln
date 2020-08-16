@@ -68,7 +68,6 @@ void Init_GPIO(void)
     GpioCtrlRegs.GPAPUD.bit.GPIO31 = 0;     // Enable pull-up for GPIO31 (CANTXA)
     GpioCtrlRegs.GPAMUX2.bit.GPIO31 = 1;    // Configure GPIO31 as CAN TX
 
-
     GpioCtrlRegs.GPBMUX2.bit.GPIO56 = 0;    // Configure GPIO56 as GPIO
     GpioCtrlRegs.GPBDIR.bit.GPIO56 = 1;     // GPIO56 = output
     GpioDataRegs.GPBCLEAR.bit.GPIO56 = 1;   // output set LOW (LED1)
