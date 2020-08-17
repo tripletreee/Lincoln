@@ -63,6 +63,7 @@ Uint32 Message_TX_L = 0, Message_TX_H = 0;
 Uint16 Message_RX_Index = 0;
 
 int Message_TX_Flag = 0;
+int trigger = 0;
 
 // system state machine
 // 0: Initial
@@ -83,10 +84,9 @@ void main(void)
 
     // Forever loop
     for(;;){
-        if(Message_TX_Flag){
-            can_SendMailBox(0, 0x01, 0x02);
-            Message_TX_Flag = 0;
-            Message_TX_Count++;
+        if(trigger == 1){
+            trigger = 0;
+            can_SendMailBox(0, 0x01, 0x02); // send mailbox0
         }
     }
 }
@@ -300,7 +300,7 @@ __interrupt void ecan0_isr(void)
             ECanaRegs.CANRMP.all = ECanaShadow.CANRMP.all;
             Message_TX_Flag = 1;
 
-            //can_SendMailBox(0, Message_TX_L, Message_TX_H); // send mailbox0
+            can_SendMailBox(0, Message_TX_L, Message_TX_H); // send mailbox0
         }
     }
     else{
