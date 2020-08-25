@@ -150,7 +150,6 @@ inline void Enable_interrupts(void){
     //PieCtrlRegs.PIEIER11.bit.INTx1  = 1;
 
 
-
     //
     // Enable global Interrupts and higher priority real-time debug events
     //

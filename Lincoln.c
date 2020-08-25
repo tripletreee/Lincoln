@@ -18,10 +18,8 @@ Uint16 command_gimbal_position = 2680;      // gimbal angle command: [3480,1820]
 int16  shadow_motor_speed = 0;              // motor speed command: [0,1000]
 Uint16 shadow_servo_position = 17250;       // servo angle command: [12000,22500]
 Uint16 shadow_gimbal_position = 2680;       // gimbal angle command: [3480,1820]
-//int  PWM_CNT = 0;
-//int  SERVO_CNT = 17250;  //when pulse width = 1.5ms, servo at neutral(16875 + 375offset)  left 11250 right 22500
 
-Uint16 battery_voltage_uint16 = 0;                 // battery voltage ADC result
+Uint16 battery_voltage_uint16 = 0;          // battery voltage ADC result
 float battery_voltage_f = 0;
 
 
@@ -42,10 +40,10 @@ int16 gimbal_current = 0;
 int16 gimbal_current_pre = 0;
 int gimbal_current_phase = 0;
 
-PID_Obj PID_Gimbal_Position = {6, 0.1, 60, 1000, -1000, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Obj PID_Gimbal_Position = {8, 0.0001, 80, 1000, -1000, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Position_Handle = &PID_Gimbal_Position;
 
-PID_Obj PID_Gimbal_Current = {1, 0.002, 0, 1300, -1300, 0, 0, 1500, -1500, 0, 0, 0};
+PID_Obj PID_Gimbal_Current = {1.3, 0.005, 0, 1300, -1300, 0, 0, 1500, -1500, 0, 0, 0};
 PID_Handle PID_Gimbal_Current_Handle = &PID_Gimbal_Current;
 
 Uint16 ADC_Results[16];
@@ -84,10 +82,6 @@ void main(void)
 
     // Forever loop
     for(;;){
-        if(trigger == 1){
-            trigger = 0;
-            can_SendMailBox(0, 0x01, 0x02); // send mailbox0
-        }
     }
 }
 int16 gimbal_phase_order = 0;
@@ -131,7 +125,7 @@ __interrupt void adc_isr(void)
     gimbal_current = 2048 - ADC_Results[*current_pointer + 1];
     gimbal_current = (gimbal_direction_pre) == 1 ? gimbal_current : -gimbal_current;
 
-    gimbal_current = gimbal_current_pre*0.1 + 0.9*gimbal_current;
+    //gimbal_current = gimbal_current_pre*0.1 + 0.9*gimbal_current;
 
     battery_voltage_uint16 = ADC_Results[4];
     battery_voltage_f = battery_voltage_f*0.99 + 0.01*battery_voltage_uint16*BATTERY_FGAIN;
@@ -150,12 +144,13 @@ __interrupt void adc_isr(void)
     }
 
     // BLDC commute
-    BLDC_Commute(current_pointer, gimbal_phase_order, gimbal_direction, GIMBAL_HALF_PERIOD - PID_Gimbal_Current.outputInt);
+    BLDC_Commute(current_pointer, gimbal_phase_order, gimbal_direction, GIMBAL_HALF_PERIOD - PID_Gimbal_Current.outputInt-5);
 
     count_10khz++;
 
     // GPIO 12 is test point
     GpioDataRegs.GPACLEAR.bit.GPIO12 = 1;
+
     //
     // Clear ADCINT1 flag reinitialize for next SOC
     //
@@ -246,7 +241,7 @@ __interrupt void ecap3_isr(void){
 
         gimbal_position = duty_count - 16;
 
-        gimbal_position = gimbal_position_pre*0.8 + 0.2*gimbal_position;
+        //gimbal_position = gimbal_position_pre*0.2 + 0.8*gimbal_position;
     }
 
     ECap3Regs.ECCLR.bit.CEVT2 = 1;
@@ -267,6 +262,11 @@ __interrupt void ecan0_isr(void)
     ECanaShadow = ECanaRegs;
 
     if(ECanaShadow.CANGIF0.bit.GMIF0 == 1){
+        ECanaShadow.CANTA.all = 0;
+        ECanaShadow.CANTA.bit.TA0 = 1;       // Clear TA0
+        ECanaRegs.CANTA.all = ECanaShadow.CANTA.all;
+
+
         // mailbox interrupt
         if(ECanaShadow.CANGIF0.bit.MIV0 == 0){
             // if it is TX (mailbox 0) interrupt
@@ -285,9 +285,9 @@ __interrupt void ecan0_isr(void)
             can_ReadMailBox(16, &Message_RX_L, &Message_RX_H);
 
             Message_RX_Index = Message_RX_L >> 16;
-            shadow_motor_speed = Message_RX_L & 0x0000ffff;
-            shadow_gimbal_position = Message_RX_H >> 16;
-            shadow_servo_position = Message_RX_H & 0x0000ffff;
+//            shadow_motor_speed = Message_RX_L & 0x0000ffff;
+//            shadow_gimbal_position = Message_RX_H >> 16;
+//            shadow_servo_position = Message_RX_H & 0x0000ffff;
 
             Message_TX_L  = (Message_RX_L & 0xffff0000) | motor_speed;
             Message_TX_H  = ((Uint32) gimbal_position) << 16 | battery_voltage_uint16;
@@ -325,8 +325,6 @@ __interrupt void ecan0_isr(void)
 //            ECanaShadow.CANGIF0.all = 0;
 //            ECanaShadow.CANGIF0.bit.WDIF0 = 1;
 //        }
-
-
     }
     ECanaRegs.CANGIF0.all = ECanaShadow.CANGIF0.all;
     _f = 1-_f;

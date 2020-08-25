@@ -12,7 +12,7 @@ void Init_eCANs(void){
     MBXwrA();
 
     //
-    // Set mailbox0's ID=0x01
+    // Set mailbox0's ID=0x01, TX
     //
     ECanaMboxes.MBOX0.MSGID.bit.IDE = 0;   // Identifier extension bit.
     ECanaMboxes.MBOX0.MSGID.bit.AME = 0;   // Acceptance mask enable bit.
@@ -22,7 +22,7 @@ void Init_eCANs(void){
     ECanaMboxes.MBOX0.MSGID.bit.EXTMSGID_L = 0;
     
     //
-    // Set mailbox16's ID=0x02
+    // Set mailbox16's ID=0x02, RX
     // 
     ECanaMboxes.MBOX16.MSGID.bit.IDE = 0;   // Identifier extension bit.
     ECanaMboxes.MBOX16.MSGID.bit.AME = 0;   // Acceptance mask enable bit.
@@ -125,7 +125,7 @@ void can_SendMailBox(int16 MBXnbr, Uint32 MDL, Uint32 MDH){
     ECanaRegs.CANTRS.all = ECanaShadow.CANTRS.all;
 
 
-/**/
+/*
     do
     {
         ECanaShadow.CANTA.all = ECanaRegs.CANTA.all; //Transmit Acknowledge
@@ -134,7 +134,7 @@ void can_SendMailBox(int16 MBXnbr, Uint32 MDL, Uint32 MDH){
     ECanaShadow.CANTA.all = 0;
     ECanaShadow.CANTA.bit.TA0 = 1;                  // Clear TA0
     ECanaRegs.CANTA.all = ECanaShadow.CANTA.all;
-
+*/
 }
 
 /* Zero-out the MBX RAM of CAN-A */
