@@ -4,6 +4,10 @@
 #include "DSP28x_Project.h"     // Device Headerfile and Examples Include File
 #include "F2806x_Device.h"     // F2806x Headerfile Include File
 #include "F2806x_Examples.h"
+#include "pwm.h"
+#include "adc.h"
+#include "bldc.h"
+#include "auto.h"
 
 #define CLA_PROG_ENABLE      0x0001
 #define CLARAM0_ENABLE       0x0010
@@ -38,6 +42,9 @@ extern Uint16 Cla1mathTablesRunStart;
 // CLA Variables
 //
 
+extern Uint16 ADC_Results[16];
+extern AUTO_Obj Lincoln_Auto;
+extern AUTO_Handle Lincoln_Auto_Handle;
 
 void Init_CLA(void);
 

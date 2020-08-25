@@ -2,66 +2,67 @@
 
 __interrupt void Cla1Task1(void)
 {
-/*
+    AUTO_Obj *auto_obj = (AUTO_Obj *) Lincoln_Auto_Handle;
+
     // GPIO 12 is set high
     GpioDataRegs.GPASET.bit.GPIO12 = 1;
 
-    command_motor_speed = shadow_motor_speed;
-    command_servo_position = shadow_servo_position;
-    command_gimbal_position = shadow_gimbal_position;
+    auto_obj->command_motor_speed = auto_obj->shadow_motor_speed;
+    auto_obj->command_servo_position = auto_obj->shadow_servo_position;
+    auto_obj->command_gimbal_position = auto_obj->shadow_gimbal_position;
 
     // 1 kHz control loop
-    if(count_10khz == 10)
+    if(auto_obj->count_10khz == 10)
     {
-        count_10khz = 0;
+        auto_obj->count_10khz = 0;
 
         // Servo position control
-        EPwm2Regs.CMPA.half.CMPA = SERVO_HALF_PERIOD - command_servo_position;
+        EPwm2Regs.CMPA.half.CMPA = SERVO_HALF_PERIOD - auto_obj->command_servo_position;
 
         // Motor velocity control
-        PID_Control(PID_Motor_Handle, command_motor_speed, motor_speed);
-        motor_pwm_pre = motor_pwm;
-        motor_pwm = PID_Motor.outputInt;
-        motor_pwm = motor_pwm_pre*0.6 + 0.4*motor_pwm;
-        EPwm1Regs.CMPA.half.CMPA = MOTOR_HALF_PERIOD - motor_pwm;
+        PID_Control(&auto_obj->PID_Motor, auto_obj->command_motor_speed, auto_obj->motor_speed);
+        auto_obj->motor_pwm_pre = auto_obj->motor_pwm;
+        auto_obj->motor_pwm = auto_obj->PID_Motor.outputInt;
+        auto_obj->motor_pwm = auto_obj->motor_pwm_pre*0.6 + 0.4*auto_obj->motor_pwm;
+
+        EPwm1Regs.CMPA.half.CMPA = MOTOR_HALF_PERIOD - auto_obj->motor_pwm;
 
         // Gimbal position control
-        PID_Control(PID_Gimbal_Position_Handle, command_gimbal_position, gimbal_position);
-
+        PID_Control(&auto_obj->PID_Gimbal_Position, auto_obj->command_gimbal_position, auto_obj->gimbal_position);
     }
 
     ADC_Get_Results(ADC_Results);
-    gimbal_direction_pre = gimbal_direction;
-    gimbal_current_pre = gimbal_current;
-    gimbal_current = 2048 - ADC_Results[*current_pointer + 1];
-    gimbal_current = (gimbal_direction_pre) == 1 ? gimbal_current : -gimbal_current;
+    auto_obj->gimbal_direction_pre = auto_obj->gimbal_direction;
+    auto_obj->gimbal_current_pre = auto_obj->gimbal_current;
+    auto_obj->gimbal_current = 2048 - ADC_Results[(int)auto_obj->current_pointer + 1];
+    auto_obj->gimbal_current = (auto_obj->gimbal_direction_pre) == 1 ? auto_obj->gimbal_current : -auto_obj->gimbal_current;
 
-    //gimbal_current = gimbal_current_pre*0.1 + 0.9*gimbal_current;
+    //auto_obj->gimbal_current = auto_obj->gimbal_current_pre*0.1 + 0.9*auto_obj->gimbal_current;
 
-    battery_voltage_uint16 = ADC_Results[4];
-    battery_voltage_f = battery_voltage_f*0.99 + 0.01*battery_voltage_uint16*BATTERY_FGAIN;
+    auto_obj->battery_voltage_uint16 = ADC_Results[4];
+    auto_obj->battery_voltage_f = auto_obj->battery_voltage_f*0.99 + 0.01*auto_obj->battery_voltage_uint16*BATTERY_FGAIN;
 
-    PID_Control(PID_Gimbal_Current_Handle, PID_Gimbal_Position.output, gimbal_current);
+    PID_Control(&auto_obj->PID_Gimbal_Current, auto_obj->PID_Gimbal_Position.output, auto_obj->gimbal_current);
 
-    gimbal_direction = PID_Gimbal_Current.output < 0 ? 0:1; // 0: right turn; 1: left turn;
+    auto_obj->gimbal_direction = auto_obj->PID_Gimbal_Current.output < 0 ? 0:1; // 0: right turn; 1: left turn;
 
-    gimbal_position_difference = abs(gimbal_position - BLDC_AB_POS) * PHASES_PER_TICK;
+    auto_obj->gimbal_position_difference = abs(auto_obj->gimbal_position - BLDC_AB_POS) * PHASES_PER_TICK;
 
-    gimbal_phase_order = (int)gimbal_position_difference % 6;
+    auto_obj->gimbal_phase_order = (int)auto_obj->gimbal_position_difference % 6;
 
-    if (gimbal_position < BLDC_AB_POS)
+    if (auto_obj->gimbal_position < BLDC_AB_POS)
     {
-        gimbal_phase_order = 5 - gimbal_phase_order;
+        auto_obj->gimbal_phase_order = 5 - auto_obj->gimbal_phase_order;
     }
 
     // BLDC commute
-    BLDC_Commute(current_pointer, gimbal_phase_order, gimbal_direction, GIMBAL_HALF_PERIOD - PID_Gimbal_Current.outputInt-5);
+    BLDC_Commute((int)auto_obj->current_pointer, (int)auto_obj->gimbal_phase_order, (int)auto_obj->gimbal_direction, (int)GIMBAL_HALF_PERIOD - auto_obj->PID_Gimbal_Current.outputInt-5);
 
-    count_10khz++;
+    auto_obj->count_10khz++;
 
     // GPIO 12 is test point
     GpioDataRegs.GPACLEAR.bit.GPIO12 = 1;
-*/
+
 }
 
 

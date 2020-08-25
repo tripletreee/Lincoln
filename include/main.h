@@ -18,6 +18,7 @@
 #include "i2c.h"
 #include "sci.h"
 #include "cla.h"
+#include "auto.h"
 
 #include "pid.h"
 #include "bldc.h"
@@ -27,6 +28,12 @@ __interrupt void ecap1_isr(void);
 __interrupt void ecap3_isr(void);
 __interrupt void ecan0_isr(void);
 __interrupt void adc_isr(void);
+__interrupt void cla1_task1_isr(void);
+//__interrupt void epwm1_timer_isr(void);
+//__interrupt void spiTxFifoIsr(void);
+//__interrupt void spiRxFifoIsr(void);
+//__interrupt void sciaTxFifoIsr(void);
+//__interrupt void sciaRxFifoIsr(void);
 
 inline void Init_PIE_Vector_Table(void){
     
@@ -65,6 +72,7 @@ inline void Init_PIE_Vector_Table(void){
     PieVectTable.ECAP3_INT = &ecap3_isr;
     PieVectTable.ECAN0INTA = &ecan0_isr;
     PieVectTable.ADCINT1 = &adc_isr;
+    //PieVectTable.CLA1_INT1  = &cla1_task1_isr;
     EDIS;      // This is needed to disable write to EALLOW protected registers
 }
 
@@ -180,6 +188,7 @@ inline void Init_System(void){
     // Step 4. Initialize the Device Peripheral. 
     InitCpuTimers();    // Initialize the CPU Timers
     Init_ADC();         // Initialize the ADC
+    Init_CLA();         // Initialize the CLA
     Init_ePWMs();       // Initialize the ePWM modules
     Init_eCAPs();       // Initialize the eCAP modules
     Init_eCANs();       // Initialize the eCAN modules
