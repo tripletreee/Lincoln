@@ -1,6 +1,9 @@
 #include "cla.h"
-#include "CLAShared.h"
-#include "string.h"
+
+//
+// Task 1 (C) Variables
+//
+
 
 void Init_CLA(void){
 

@@ -1,6 +1,7 @@
 #ifndef F28069_CLA_H
 #define F28069_CLA_H
 
+#include "DSP28x_Project.h"     // Device Headerfile and Examples Include File
 #include "F2806x_Device.h"     // F2806x Headerfile Include File
 #include "F2806x_Examples.h"
 
@@ -33,7 +34,17 @@ extern Uint16 Cla1mathTablesLoadEnd;
 extern Uint16 Cla1mathTablesLoadSize;
 extern Uint16 Cla1mathTablesRunStart;
 
+//
+// CLA Variables
+//
+
+
 void Init_CLA(void);
+
+//
+// CLA C Tasks
+//
+__interrupt void Cla1Task1();
 
 #endif // end of F28069_CLA_H definition
 

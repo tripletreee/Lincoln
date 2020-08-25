@@ -1,0 +1,71 @@
+#include "include/cla.h"
+
+__interrupt void Cla1Task1(void)
+{
+/*
+    // GPIO 12 is set high
+    GpioDataRegs.GPASET.bit.GPIO12 = 1;
+
+    command_motor_speed = shadow_motor_speed;
+    command_servo_position = shadow_servo_position;
+    command_gimbal_position = shadow_gimbal_position;
+
+    // 1 kHz control loop
+    if(count_10khz == 10)
+    {
+        count_10khz = 0;
+
+        // Servo position control
+        EPwm2Regs.CMPA.half.CMPA = SERVO_HALF_PERIOD - command_servo_position;
+
+        // Motor velocity control
+        PID_Control(PID_Motor_Handle, command_motor_speed, motor_speed);
+        motor_pwm_pre = motor_pwm;
+        motor_pwm = PID_Motor.outputInt;
+        motor_pwm = motor_pwm_pre*0.6 + 0.4*motor_pwm;
+        EPwm1Regs.CMPA.half.CMPA = MOTOR_HALF_PERIOD - motor_pwm;
+
+        // Gimbal position control
+        PID_Control(PID_Gimbal_Position_Handle, command_gimbal_position, gimbal_position);
+
+    }
+
+    ADC_Get_Results(ADC_Results);
+    gimbal_direction_pre = gimbal_direction;
+    gimbal_current_pre = gimbal_current;
+    gimbal_current = 2048 - ADC_Results[*current_pointer + 1];
+    gimbal_current = (gimbal_direction_pre) == 1 ? gimbal_current : -gimbal_current;
+
+    //gimbal_current = gimbal_current_pre*0.1 + 0.9*gimbal_current;
+
+    battery_voltage_uint16 = ADC_Results[4];
+    battery_voltage_f = battery_voltage_f*0.99 + 0.01*battery_voltage_uint16*BATTERY_FGAIN;
+
+    PID_Control(PID_Gimbal_Current_Handle, PID_Gimbal_Position.output, gimbal_current);
+
+    gimbal_direction = PID_Gimbal_Current.output < 0 ? 0:1; // 0: right turn; 1: left turn;
+
+    gimbal_position_difference = abs(gimbal_position - BLDC_AB_POS) * PHASES_PER_TICK;
+
+    gimbal_phase_order = (int)gimbal_position_difference % 6;
+
+    if (gimbal_position < BLDC_AB_POS)
+    {
+        gimbal_phase_order = 5 - gimbal_phase_order;
+    }
+
+    // BLDC commute
+    BLDC_Commute(current_pointer, gimbal_phase_order, gimbal_direction, GIMBAL_HALF_PERIOD - PID_Gimbal_Current.outputInt-5);
+
+    count_10khz++;
+
+    // GPIO 12 is test point
+    GpioDataRegs.GPACLEAR.bit.GPIO12 = 1;
+*/
+}
+
+
+//
+// End of File
+//
+
