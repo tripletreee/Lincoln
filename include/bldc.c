@@ -2,7 +2,8 @@
 #include "spi.h"
 
 void Init_Motor_Drvs(void){
-    _delay(400000);
+    //_delay(400000);
+    DELAY_US(10000);
 
     // Enable the DRV8305 for gimbal
     GpioDataRegs.GPBSET.bit.GPIO50 = 1;
