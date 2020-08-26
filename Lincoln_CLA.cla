@@ -34,13 +34,13 @@ __interrupt void Cla1Task1(void)
     ADC_Get_Results(ADC_Results);
     auto_obj->gimbal_direction_pre = auto_obj->gimbal_direction;
     auto_obj->gimbal_current_pre = auto_obj->gimbal_current;
-    auto_obj->gimbal_current = 2048 - ADC_Results[(int)auto_obj->current_pointer + 1];
+    auto_obj->gimbal_current = 2048 - ADC_Results[auto_obj->gimbal_current_sample_num + 1];
     auto_obj->gimbal_current = (auto_obj->gimbal_direction_pre) == 1 ? auto_obj->gimbal_current : -auto_obj->gimbal_current;
 
     //auto_obj->gimbal_current = auto_obj->gimbal_current_pre*0.1 + 0.9*auto_obj->gimbal_current;
 
-    auto_obj->battery_voltage_uint16 = ADC_Results[4];
-    auto_obj->battery_voltage_f = auto_obj->battery_voltage_f*0.99 + 0.01*auto_obj->battery_voltage_uint16*BATTERY_FGAIN;
+    auto_obj->battery_voltage_uint = ADC_Results[4];
+    auto_obj->battery_voltage_f = auto_obj->battery_voltage_f*0.99 + 0.01*auto_obj->battery_voltage_uint*BATTERY_FGAIN;
 
     PID_Control(&auto_obj->PID_Gimbal_Current, auto_obj->PID_Gimbal_Position.output, auto_obj->gimbal_current);
 
@@ -56,7 +56,7 @@ __interrupt void Cla1Task1(void)
     }
 
     // BLDC commute
-    BLDC_Commute((int)auto_obj->current_pointer, (int)auto_obj->gimbal_phase_order, (int)auto_obj->gimbal_direction, (int)GIMBAL_HALF_PERIOD - auto_obj->PID_Gimbal_Current.outputInt-5);
+    BLDC_Commute(&auto_obj->gimbal_current_sample_num, auto_obj->gimbal_phase_order, auto_obj->gimbal_direction, GIMBAL_HALF_PERIOD-auto_obj->PID_Gimbal_Current.outputInt-GIMBAL_DEAD_XING);
 
     auto_obj->count_10khz++;
 

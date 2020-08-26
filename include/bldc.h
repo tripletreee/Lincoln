@@ -5,7 +5,7 @@
 #include "pwm.h"
 #include "util.h"
 
-#define BLDC_AB_POS 2646.0
+#define BLDC_AB_POS 2646
 #define BLDC_POLES 14.0
 #define BLDC_TICKS 4096.0
 #define TICKS_PER_PHASE (BLDC_TICKS / (BLDC_POLES/2) / 6)
@@ -13,7 +13,7 @@
 
 void Init_Motor_Drvs(void);
 
-inline void BLDC_Commute(int *current_pointer, int phase_order, int direction, Uint16 PWM){
+inline void BLDC_Commute(Uint32 *current_pointer, Uint32 phase_order, Uint32 direction, Uint32 PWM){
 
     if((phase_order == 1) && (direction == 0) || (phase_order == 4) && (direction == 1)){
         // A -> B

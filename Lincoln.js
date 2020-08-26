@@ -1,25 +1,23 @@
 expRemoveAll();
 
-expAdd ("PID_Motor");
-expAdd ("PID_Gimbal_Position");
-expAdd ("PID_Gimbal_Current");
+expAdd ("Lincoln_Auto");
 
-expAdd ("shadow_motor_speed");
-expAdd ("shadow_servo_position");
-expAdd ("shadow_gimbal_position");
-expAdd ("motor_position");
-expAdd ("motor_position_pre");
-expAdd ("motor_speed");
-expAdd ("motor_speed_pre");
+expAdd ("Lincoln_Auto.shadow_motor_speed");
+expAdd ("Lincoln_Auto.shadow_servo_position");
+expAdd ("Lincoln_Auto.shadow_gimbal_position");
+expAdd ("Lincoln_Auto.motor_position");
+expAdd ("Lincoln_Auto.motor_position_pre");
+expAdd ("Lincoln_Auto.motor_speed");
+expAdd ("Lincoln_Auto.motor_speed_pre");
 
-expAdd ("gimbal_position");
-expAdd ("gimbal_position_pre");
-expAdd ("gimbal_speed");
-expAdd ("gimbal_speed_pre");
-expAdd ("gimbal_current");
-expAdd ("gimbal_current_pre");
+expAdd ("Lincoln_Auto.gimbal_position");
+expAdd ("Lincoln_Auto.gimbal_position_pre");
+expAdd ("Lincoln_Auto.gimbal_speed");
+expAdd ("Lincoln_Auto.gimbal_speed_pre");
+expAdd ("Lincoln_Auto.gimbal_current");
+expAdd ("Lincoln_Auto.gimbal_current_pre");
 
-expAdd ("battery_voltage_f");
+expAdd ("Lincoln_Auto.battery_voltage_f");
 
 expAdd ("Message_TX_L");
 expAdd ("Message_TX_H");

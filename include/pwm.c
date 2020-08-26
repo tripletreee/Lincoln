@@ -33,7 +33,7 @@ void Init_ePWM1(void)
     //
     // Set Compare values
     //
-    EPwm1Regs.CMPA.half.CMPA = 0; // Set compare A value
+    EPwm1Regs.CMPA.half.CMPA = MOTOR_HIGH_VALUE; // Set compare A value
 
     //
     // Set Actions
