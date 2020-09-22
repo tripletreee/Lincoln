@@ -34,6 +34,10 @@ Uint32 Message_RX_L = 0, Message_RX_H = 0;
 Uint32 Message_TX_L = 0, Message_TX_H = 0;
 Uint16 Message_RX_Index = 0;
 
+int LED_Gimbal_Counter = 0;
+int LED_Motor_Counter = 0;
+int LED_CANBus_Counter = 0;
+
 // system state machine
 // 0: Initial
 // 1: online
@@ -78,7 +82,7 @@ __interrupt void cpu_timer0_isr(void)
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;
 }
 
-// Motor encoder ISR, update the motor position and velocity
+// Motor encoder ISR, update the motor position and speed, 1 kHz
 __interrupt void ecap1_isr(void){
 
     Uint32 ecap1_t1 = ECap1Regs.CAP1;
@@ -107,6 +111,8 @@ __interrupt void ecap1_isr(void){
                 Lincoln_Auto.motor_speed = Lincoln_Auto.motor_position_pre - 4096 - Lincoln_Auto.motor_position;
             }
         }
+        Lincoln_Auto.motor_speed_for_Jetson += Lincoln_Auto.motor_speed;
+
         Lincoln_Auto.motor_speed = Lincoln_Auto.motor_speed_pre*0.3 + 0.7*Lincoln_Auto.motor_speed;
     }
     else{
@@ -114,9 +120,20 @@ __interrupt void ecap1_isr(void){
         Lincoln_Auto.motor_position = Lincoln_Auto.motor_position + Lincoln_Auto.motor_speed;
     }
 
+    // First 4 periods are for initialization. Zero the speed.
     if(count_init<4){
         count_init++;
         Lincoln_Auto.motor_speed = 0;
+    }
+
+    // Flash the LED2 for motor
+    if(LED_Motor_Counter > 250){
+        LED_Motor_Counter = 0;
+        GpioDataRegs.GPBSET.bit.GPIO57 = 1;
+    }
+    else{
+        LED_Motor_Counter++;
+        GpioDataRegs.GPBCLEAR.bit.GPIO57 = 1;
     }
 
     ECap1Regs.ECCLR.bit.CEVT2 = 1;
@@ -128,7 +145,7 @@ __interrupt void ecap1_isr(void){
     PieCtrlRegs.PIEACK.all |= PIEACK_GROUP4;
 }
 
-// Gimbal encoder ISR, update the gimbal position
+// Gimbal encoder ISR, update the gimbal position, 1 kHz
 __interrupt void ecap3_isr(void){
 
     Uint32 ecap3_t1 = ECap3Regs.CAP1;
@@ -140,8 +157,16 @@ __interrupt void ecap3_isr(void){
         Lincoln_Auto.gimbal_position_pre = Lincoln_Auto.gimbal_position;
 
         Lincoln_Auto.gimbal_position = duty_count - 16;
+    }
 
-        //gimbal_position = gimbal_position_pre*0.2 + 0.8*gimbal_position;
+    // Flash the LED1 for gimbal
+    if(LED_Gimbal_Counter > 250){
+        LED_Gimbal_Counter = 0;
+        GpioDataRegs.GPBSET.bit.GPIO56 = 1;
+    }
+    else{
+        LED_Gimbal_Counter++;
+        GpioDataRegs.GPBCLEAR.bit.GPIO56 = 1;
     }
 
     ECap3Regs.ECCLR.bit.CEVT2 = 1;
@@ -155,7 +180,7 @@ __interrupt void ecap3_isr(void){
 }
 
 
-// CAN Bus interrupt
+// CAN Bus interrupt, suppose to be 100 Hz
 __interrupt void ecan0_isr(void)
 {
     ECanaShadow = ECanaRegs;
@@ -181,13 +206,25 @@ __interrupt void ecan0_isr(void)
 
             Message_RX_Index = Message_RX_L >> 16;
 //            Lincoln_Auto.shadow_motor_speed = Message_RX_L & 0x0000ffff;
-//            Lincoln_Auto.shadow_gimbal_position = Message_RX_H >> 16;
+
+            int tmp_gimbal_pos = Message_RX_H >> 16;
+            if(tmp_gimbal_pos < GIMBAL_POS_MIN){
+                Lincoln_Auto.shadow_gimbal_position = GIMBAL_POS_MIN;
+            }
+            else if(tmp_gimbal_pos > GIMBAL_POS_MAX){
+                Lincoln_Auto.shadow_gimbal_position = GIMBAL_POS_MAX;
+            }
+            else{
+                Lincoln_Auto.shadow_gimbal_position = tmp_gimbal_pos;
+            }
+
 //            Lincoln_Auto.shadow_servo_position = Message_RX_H & 0x0000ffff;
 
-            Message_TX_L  = (Message_RX_L & 0xffff0000) | (int)Lincoln_Auto.motor_speed;
+            Message_TX_L  = (Message_RX_L & 0xffff0000) | (int) Lincoln_Auto.motor_speed_for_Jetson;
             Message_TX_H  = ((Uint32) Lincoln_Auto.gimbal_position) << 16 | Lincoln_Auto.battery_voltage_uint;
 
             Message_RX_Count++;
+            Lincoln_Auto.motor_speed_for_Jetson = 0;
 
             // clear (RMP) Received-Message-Pending Register
             ECanaShadow.CANRMP.all = 0;
@@ -220,6 +257,17 @@ __interrupt void ecan0_isr(void)
 //            ECanaShadow.CANGIF0.bit.WDIF0 = 1;
 //        }
     }
+
+    // Flash the LED3 for CAN Bus
+    if(LED_CANBus_Counter > 25){
+        LED_CANBus_Counter = 0;
+        GpioDataRegs.GPBSET.bit.GPIO58 = 1;
+    }
+    else{
+        LED_CANBus_Counter++;
+        GpioDataRegs.GPBCLEAR.bit.GPIO58 = 1;
+    }
+
     ECanaRegs.CANGIF0.all = ECanaShadow.CANGIF0.all;
     ECanaShadow_post = ECanaRegs;
 

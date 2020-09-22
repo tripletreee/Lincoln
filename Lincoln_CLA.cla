@@ -5,7 +5,7 @@ __interrupt void Cla1Task1(void)
     AUTO_Obj *auto_obj = (AUTO_Obj *) Lincoln_Auto_Handle;
 
     // GPIO 12 is set high
-    GpioDataRegs.GPASET.bit.GPIO12 = 1;
+    //GpioDataRegs.GPASET.bit.GPIO12 = 1;
 
     auto_obj->command_motor_speed = auto_obj->shadow_motor_speed;
     auto_obj->command_servo_position = auto_obj->shadow_servo_position;
@@ -61,7 +61,7 @@ __interrupt void Cla1Task1(void)
     auto_obj->count_10khz++;
 
     // GPIO 12 is test point
-    GpioDataRegs.GPACLEAR.bit.GPIO12 = 1;
+    //GpioDataRegs.GPACLEAR.bit.GPIO12 = 1;
 
 }
 

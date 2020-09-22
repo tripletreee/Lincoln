@@ -4,18 +4,19 @@ void Init_Auto(AUTO_Handle auto_handle){
 
     AUTO_Obj *auto_obj = (AUTO_Obj *) auto_handle;
 
-    auto_obj->command_motor_speed = 0;          // motor speed command: [0,1000]
-    auto_obj->command_servo_position = 17250;   // servo angle command: [12000,22500]
-    auto_obj->command_gimbal_position = 2680;   // gimbal angle command: [3480,1820]
+    auto_obj->command_motor_speed = 0;                      // motor speed command: [0,1000]
+    auto_obj->command_servo_position = SERVO_POS_DEF;
+    auto_obj->command_gimbal_position = GIMBAL_POS_DEF;
 
-    auto_obj->shadow_motor_speed = 0;           // motor speed command: [0,1000]
-    auto_obj->shadow_servo_position = 17250;    // servo angle command: [12000,22500]
-    auto_obj->shadow_gimbal_position = 2680;    // gimbal angle command: [3480,1820]
+    auto_obj->shadow_motor_speed = 0;                       // motor speed command: [0,1000]
+    auto_obj->shadow_servo_position = SERVO_POS_DEF;
+    auto_obj->shadow_gimbal_position = GIMBAL_POS_DEF;
 
     auto_obj->motor_position = 2680;
     auto_obj->motor_position_pre = 2680;
     auto_obj->motor_speed = 0;
     auto_obj->motor_speed_pre = 0;
+    auto_obj->motor_speed_for_Jetson = 0;
     auto_obj->motor_pwm = 0;
     auto_obj->motor_pwm_pre = 0;
 

@@ -11,6 +11,7 @@
 #define TICKS_PER_PHASE (BLDC_TICKS / (BLDC_POLES/2) / 6)
 #define PHASES_PER_TICK (1/TICKS_PER_PHASE)
 
+
 void Init_Motor_Drvs(void);
 
 inline void BLDC_Commute(Uint32 *current_pointer, Uint32 phase_order, Uint32 direction, Uint32 PWM){

@@ -4,6 +4,15 @@
 #include "pid.h"
 #include "pwm.h"
 
+#define GIMBAL_POS_MIN 1820                 // gimbal angle command: [3480,1820]
+#define GIMBAL_POS_MAX 3480
+#define GIMBAL_POS_DEF (GIMBAL_POS_MIN+GIMBAL_POS_MAX)/2
+
+#define SERVO_POS_MIN  12000                // servo angle command: [12000,22500]
+#define SERVO_POS_MAX  22500
+#define SERVO_POS_DEF  SERVO_POS_MIN/2+SERVO_POS_MAX/2
+
+
 typedef struct _AUTO_Obj_
 {
     int32 command_motor_speed;              // Motor speed command: [0,1000]
@@ -18,6 +27,7 @@ typedef struct _AUTO_Obj_
     float  motor_position_pre;              // Motor previous position
     float  motor_speed;                     // Measured motor speed
     float  motor_speed_pre;                 // Measured motor speed previous
+    int32  motor_speed_for_Jetson;          // Motor speed for Jetson
     float  motor_pwm;                       // PWM
     float  motor_pwm_pre;                   // PWM previous
 
