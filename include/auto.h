@@ -4,7 +4,7 @@
 #include "pid.h"
 #include "pwm.h"
 
-#define GIMBAL_POS_MIN 1820                 // gimbal angle command: [3480,1820]
+#define GIMBAL_POS_MIN 1860                 // gimbal angle command: [3480,1860]
 #define GIMBAL_POS_MAX 3480
 #define GIMBAL_POS_DEF (GIMBAL_POS_MIN+GIMBAL_POS_MAX)/2
 

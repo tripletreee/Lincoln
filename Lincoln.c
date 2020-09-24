@@ -127,13 +127,12 @@ __interrupt void ecap1_isr(void){
     }
 
     // Flash the LED2 for motor
-    if(LED_Motor_Counter > 250){
+    if(LED_Motor_Counter > 100){
         LED_Motor_Counter = 0;
-        GpioDataRegs.GPBSET.bit.GPIO57 = 1;
+        GpioDataRegs.GPBTOGGLE.bit.GPIO57 = 1;
     }
     else{
         LED_Motor_Counter++;
-        GpioDataRegs.GPBCLEAR.bit.GPIO57 = 1;
     }
 
     ECap1Regs.ECCLR.bit.CEVT2 = 1;
@@ -160,13 +159,12 @@ __interrupt void ecap3_isr(void){
     }
 
     // Flash the LED1 for gimbal
-    if(LED_Gimbal_Counter > 250){
+    if(LED_Gimbal_Counter > 100){
         LED_Gimbal_Counter = 0;
-        GpioDataRegs.GPBSET.bit.GPIO56 = 1;
+        GpioDataRegs.GPBTOGGLE.bit.GPIO56 = 1;
     }
     else{
         LED_Gimbal_Counter++;
-        GpioDataRegs.GPBCLEAR.bit.GPIO56 = 1;
     }
 
     ECap3Regs.ECCLR.bit.CEVT2 = 1;
@@ -259,13 +257,12 @@ __interrupt void ecan0_isr(void)
     }
 
     // Flash the LED3 for CAN Bus
-    if(LED_CANBus_Counter > 25){
+    if(LED_CANBus_Counter > 5){
         LED_CANBus_Counter = 0;
-        GpioDataRegs.GPBSET.bit.GPIO58 = 1;
+        GpioDataRegs.GPBTOGGLE.bit.GPIO58 = 1;
     }
     else{
         LED_CANBus_Counter++;
-        GpioDataRegs.GPBCLEAR.bit.GPIO58 = 1;
     }
 
     ECanaRegs.CANGIF0.all = ECanaShadow.CANGIF0.all;
