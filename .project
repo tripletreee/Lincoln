@@ -38,7 +38,7 @@
 		<link>
 			<name>F2806x_Adc.c</name>
 			<type>1</type>
-			<location>C:/ti/c2000/C2000Ware_2_00_00_02/device_support/f2806x/common/source/F2806x_Adc.c</location>
+			<location>C:/ti/c2000/C2000Ware_3_03_00_00/device_support/f2806x/common/source/F2806x_Adc.c</location>
 		</link>
 		<link>
 			<name>F2806x_CodeStartBranch.asm</name>

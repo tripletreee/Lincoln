@@ -35,6 +35,7 @@ void Init_Auto(AUTO_Handle auto_handle){
     auto_obj->gimbal_current_sample_num = 0;
 
     auto_obj->count_10khz = 0;
+    auto_obj->count_init = 0;
 
     PID_Obj PID_Motor = {3, 0.25, 0, 750, -100, 0, 0, 750, 0, 0, 0, 0};
     PID_Obj PID_Gimbal_Position = {8, 0.0001, 80, 1000, -1000, 0, 0, 1500, -1500, 0, 0, 0};

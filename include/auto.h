@@ -45,6 +45,7 @@ typedef struct _AUTO_Obj_
     Uint32 gimbal_current_sample_num;       // Gimbal current sampling number
 
     Uint32 count_10khz;
+    Uint32 count_init;
 
     PID_Obj PID_Motor;
     PID_Obj PID_Gimbal_Position;

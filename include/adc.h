@@ -10,7 +10,7 @@
 #define ADC_OFFSET_IA 2012
 #define ADC_OFFSET_IB 2012
 #define ADC_OFFSET_IC 2012
-#define BATTERY_FGAIN 4.834e-3
+#define BATTERY_FGAIN 4.834e-3f
 
 void Init_ADC(void);
 
@@ -24,14 +24,14 @@ inline void ADC_Get_Results(Uint16 *ADC_Results){
     ADC_Results[5] = AdcResult.ADCRESULT5;
     ADC_Results[6] = AdcResult.ADCRESULT6;
     ADC_Results[7] = AdcResult.ADCRESULT7;
-    ADC_Results[8] = AdcResult.ADCRESULT8;
-    ADC_Results[9] = AdcResult.ADCRESULT9;
-    ADC_Results[10] = AdcResult.ADCRESULT10;
-    ADC_Results[11] = AdcResult.ADCRESULT11;
-    ADC_Results[12] = AdcResult.ADCRESULT12;
-    ADC_Results[13] = AdcResult.ADCRESULT13;
-    ADC_Results[14] = AdcResult.ADCRESULT14;
-    ADC_Results[15] = AdcResult.ADCRESULT15;
+//    ADC_Results[8] = AdcResult.ADCRESULT8;
+//    ADC_Results[9] = AdcResult.ADCRESULT9;
+//    ADC_Results[10] = AdcResult.ADCRESULT10;
+//    ADC_Results[11] = AdcResult.ADCRESULT11;
+//    ADC_Results[12] = AdcResult.ADCRESULT12;
+//    ADC_Results[13] = AdcResult.ADCRESULT13;
+//    ADC_Results[14] = AdcResult.ADCRESULT14;
+//    ADC_Results[15] = AdcResult.ADCRESULT15;
 
 }
 

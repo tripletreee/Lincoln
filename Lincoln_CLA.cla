@@ -1,11 +1,78 @@
 #include "include/cla.h"
 
+// CLA Task running at 10 kHz
 __interrupt void Cla1Task1(void)
 {
+
     AUTO_Obj *auto_obj = (AUTO_Obj *) Lincoln_Auto_Handle;
 
     // GPIO 12 is set high
     //GpioDataRegs.GPASET.bit.GPIO12 = 1;
+
+    if(ECap1Regs.ECFLG.bit.CEVT2){
+
+        float ecap1_t1 = ECap1Regs.CAP1;
+        float ecap1_t2 = ECap1Regs.CAP2;
+        float duty_count = (ecap1_t1 / ecap1_t2)*4119;
+
+        if(duty_count > 15 && duty_count < 4112){ // if this is a valid frame
+
+            auto_obj->motor_position_pre = auto_obj->motor_position;
+
+            auto_obj->motor_position = duty_count - 16;
+
+            auto_obj->motor_speed_pre = auto_obj->motor_speed;
+
+            if( abs(auto_obj->motor_position - auto_obj->motor_position_pre ) < 2000)
+            {
+                auto_obj->motor_speed = auto_obj->motor_position_pre - auto_obj->motor_position;
+            }
+            else
+            {
+                if(auto_obj->motor_position_pre < 2000)
+                { // car is moving forward
+                    auto_obj->motor_speed = auto_obj->motor_position_pre + 4096 - auto_obj->motor_position;
+                }
+                else{
+                    auto_obj->motor_speed = auto_obj->motor_position_pre - 4096 - auto_obj->motor_position;
+                }
+            }
+            auto_obj->motor_speed_for_Jetson += auto_obj->motor_speed;
+
+            auto_obj->motor_speed = auto_obj->motor_speed_pre*0.3 + 0.7*auto_obj->motor_speed;
+        }
+        else{
+            auto_obj->motor_position_pre = auto_obj->motor_position;
+            auto_obj->motor_position = auto_obj->motor_position + auto_obj->motor_speed;
+        }
+
+        // First 4 periods are for initialization. Zero the speed.
+        if(auto_obj->count_init<4){
+            auto_obj->count_init++;
+            auto_obj->motor_speed = 0;
+        }
+
+        ECap1Regs.ECCLR.bit.CEVT2 = 1;
+        ECap1Regs.ECCLR.bit.INT = 1;
+    }
+
+    if(ECap3Regs.ECFLG.bit.CEVT2){
+
+        float ecap3_t1 = ECap3Regs.CAP1;
+        float ecap3_t2 = ECap3Regs.CAP2;
+        float duty_count = (ecap3_t1 /ecap3_t2)*4119.0f;
+
+        if(duty_count > 15 && duty_count < 4112){
+
+            auto_obj->gimbal_position_pre = auto_obj->gimbal_position;
+
+            auto_obj->gimbal_position = duty_count - 16;
+        }
+
+        ECap3Regs.ECCLR.bit.CEVT2 = 1;
+        ECap3Regs.ECCLR.bit.INT = 1;
+    }
+
 
     auto_obj->command_motor_speed = auto_obj->shadow_motor_speed;
     auto_obj->command_servo_position = auto_obj->shadow_servo_position;
@@ -23,7 +90,7 @@ __interrupt void Cla1Task1(void)
         PID_Control(&auto_obj->PID_Motor, auto_obj->command_motor_speed, auto_obj->motor_speed);
         auto_obj->motor_pwm_pre = auto_obj->motor_pwm;
         auto_obj->motor_pwm = auto_obj->PID_Motor.outputInt;
-        auto_obj->motor_pwm = auto_obj->motor_pwm_pre*0.6 + 0.4*auto_obj->motor_pwm;
+        auto_obj->motor_pwm = auto_obj->motor_pwm_pre*0.6f + 0.4f*auto_obj->motor_pwm;
 
         EPwm1Regs.CMPA.half.CMPA = MOTOR_HALF_PERIOD - auto_obj->motor_pwm;
 
@@ -40,7 +107,7 @@ __interrupt void Cla1Task1(void)
     //auto_obj->gimbal_current = auto_obj->gimbal_current_pre*0.1 + 0.9*auto_obj->gimbal_current;
 
     auto_obj->battery_voltage_uint = ADC_Results[4];
-    auto_obj->battery_voltage_f = auto_obj->battery_voltage_f*0.99 + 0.01*auto_obj->battery_voltage_uint*BATTERY_FGAIN;
+    auto_obj->battery_voltage_f = auto_obj->battery_voltage_f*0.99f + 0.01f*auto_obj->battery_voltage_uint*BATTERY_FGAIN;
 
     PID_Control(&auto_obj->PID_Gimbal_Current, auto_obj->PID_Gimbal_Position.output, auto_obj->gimbal_current);
 

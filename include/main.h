@@ -68,8 +68,8 @@ inline void Init_PIE_Vector_Table(void){
     //
     EALLOW;    // This is needed to write to EALLOW protected registers
     //PieVectTable.TINT0 = &cpu_timer0_isr; // Start the CPU timer
-    PieVectTable.ECAP1_INT = &ecap1_isr;
-    PieVectTable.ECAP3_INT = &ecap3_isr;
+    //PieVectTable.ECAP1_INT = &ecap1_isr;
+    //PieVectTable.ECAP3_INT = &ecap3_isr;
     PieVectTable.ECAN0INTA = &ecan0_isr;
     PieVectTable.ADCINT1 = &adc_isr;
     //PieVectTable.CLA1_INT1  = &cla1_task1_isr;
@@ -90,7 +90,7 @@ inline void Enable_interrupts(void){
     //
     // Enable CPU INT4 which is connected to ECAP1-4 INT
     //
-    IER |= M_INT4;
+    //IER |= M_INT4;
     
     //
     // Enable CPU INT6 which is SPI FIFO INT
@@ -129,8 +129,8 @@ inline void Enable_interrupts(void){
     //
     // Enable eCAP INTn in the PIE: Group 4 interrupt 1-6
     //
-    PieCtrlRegs.PIEIER4.bit.INTx1 = 1;
-    PieCtrlRegs.PIEIER4.bit.INTx3 = 1;
+//    PieCtrlRegs.PIEIER4.bit.INTx1 = 1;
+//    PieCtrlRegs.PIEIER4.bit.INTx3 = 1;
 
     //
     // Enable SPI FIFO INTn in the PIE: Group 6 interrupt

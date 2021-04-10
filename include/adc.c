@@ -16,7 +16,8 @@ void Init_ADC(void){
 
     AdcRegs.INTSEL1N2.bit.INT1E     = 1;    // Enabled ADCINT1
     AdcRegs.INTSEL1N2.bit.INT1CONT  = 0;    // Disable ADCINT1 Continuous mode
-    AdcRegs.INTSEL1N2.bit.INT1SEL   = 1;    // setup EOC1 to trigger ADCINT1 to fire
+    AdcRegs.INTSEL1N2.bit.INT1SEL   = 7;    // setup EOC7 to trigger ADCINT1 to fire
+    AdcRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;
 
     //
     // setup SOCs and their configurations
