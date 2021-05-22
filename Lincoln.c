@@ -68,6 +68,21 @@ __interrupt void adc_isr(void)
     //
     // Clear ADCINT1 flag reinitialize for next SOC
     //
+
+    LED_Motor_Counter++;
+
+    if(LED_Motor_Counter>5000){
+        GpioDataRegs.GPBTOGGLE.bit.GPIO57 = 1;
+        LED_Motor_Counter = 0;
+    }
+
+    if(Lincoln_Auto.command_motor_speed > 0){
+        GpioDataRegs.GPACLEAR.bit.GPIO21 = 1;
+    }
+    else{
+        GpioDataRegs.GPASET.bit.GPIO21 = 1;
+    }
+
     AdcRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;
 
     PieCtrlRegs.PIEACK.all = PIEACK_GROUP1;   // Acknowledge interrupt to PIE
@@ -101,7 +116,7 @@ __interrupt void ecan0_isr(void)
             Message_RX_Index = Message_RX_L >> 16;
 
 
-            int32 tmp_motor_speed = Message_RX_L & 0x0000ffff;
+            int16 tmp_motor_speed = Message_RX_L & 0x0000ffff;
             if(tmp_motor_speed < MOTOR_SPEED_MIN){
                 Lincoln_Auto.shadow_motor_speed = MOTOR_SPEED_MIN;
             }
@@ -111,7 +126,6 @@ __interrupt void ecan0_isr(void)
             else{
                 Lincoln_Auto.shadow_motor_speed = tmp_motor_speed;
             }
-
 
             int32 tmp_gimbal_pos = Message_RX_H >> 16;
             if(tmp_gimbal_pos < GIMBAL_POS_MIN){

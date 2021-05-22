@@ -12,7 +12,7 @@
 #define SERVO_POS_MAX  22500
 #define SERVO_POS_DEF  SERVO_POS_MIN/2+SERVO_POS_MAX/2
 
-#define MOTOR_SPEED_MIN 0
+#define MOTOR_SPEED_MIN -500
 #define MOTOR_SPEED_MAX 500
 
 typedef struct _AUTO_Obj_

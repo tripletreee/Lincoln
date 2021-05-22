@@ -87,7 +87,7 @@ __interrupt void Cla1Task1(void)
         EPwm2Regs.CMPA.half.CMPA = SERVO_HALF_PERIOD - auto_obj->command_servo_position;
 
         // Motor velocity control
-        PID_Control(&auto_obj->PID_Motor, auto_obj->command_motor_speed, auto_obj->motor_speed);
+        PID_Control(&auto_obj->PID_Motor, abs(auto_obj->command_motor_speed), abs(auto_obj->motor_speed));
         auto_obj->motor_pwm_pre = auto_obj->motor_pwm;
         auto_obj->motor_pwm = auto_obj->PID_Motor.outputInt;
         auto_obj->motor_pwm = auto_obj->motor_pwm_pre*0.6f + 0.4f*auto_obj->motor_pwm;

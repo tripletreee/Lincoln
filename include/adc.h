@@ -21,9 +21,9 @@ inline void ADC_Get_Results(Uint16 *ADC_Results){
     ADC_Results[2] = AdcResult.ADCRESULT2;
     ADC_Results[3] = AdcResult.ADCRESULT3;
     ADC_Results[4] = AdcResult.ADCRESULT4;
-    ADC_Results[5] = AdcResult.ADCRESULT5;
-    ADC_Results[6] = AdcResult.ADCRESULT6;
-    ADC_Results[7] = AdcResult.ADCRESULT7;
+//    ADC_Results[5] = AdcResult.ADCRESULT5;
+//    ADC_Results[6] = AdcResult.ADCRESULT6;
+//    ADC_Results[7] = AdcResult.ADCRESULT7;
 //    ADC_Results[8] = AdcResult.ADCRESULT8;
 //    ADC_Results[9] = AdcResult.ADCRESULT9;
 //    ADC_Results[10] = AdcResult.ADCRESULT10;
