@@ -99,9 +99,21 @@ __interrupt void ecan0_isr(void)
             can_ReadMailBox(16, &Message_RX_L, &Message_RX_H);
 
             Message_RX_Index = Message_RX_L >> 16;
-//            Lincoln_Auto.shadow_motor_speed = Message_RX_L & 0x0000ffff;
 
-            int tmp_gimbal_pos = Message_RX_H >> 16;
+
+            int32 tmp_motor_speed = Message_RX_L & 0x0000ffff;
+            if(tmp_motor_speed < MOTOR_SPEED_MIN){
+                Lincoln_Auto.shadow_motor_speed = MOTOR_SPEED_MIN;
+            }
+            else if(tmp_motor_speed > MOTOR_SPEED_MAX){
+                Lincoln_Auto.shadow_motor_speed = MOTOR_SPEED_MAX;
+            }
+            else{
+                Lincoln_Auto.shadow_motor_speed = tmp_motor_speed;
+            }
+
+
+            int32 tmp_gimbal_pos = Message_RX_H >> 16;
             if(tmp_gimbal_pos < GIMBAL_POS_MIN){
                 Lincoln_Auto.shadow_gimbal_position = GIMBAL_POS_MIN;
             }
@@ -112,7 +124,18 @@ __interrupt void ecan0_isr(void)
                 Lincoln_Auto.shadow_gimbal_position = tmp_gimbal_pos;
             }
 
-//            Lincoln_Auto.shadow_servo_position = Message_RX_H & 0x0000ffff;
+
+            int32 tmp_servo_pos = Message_RX_H & 0x0000ffff;
+            if(tmp_servo_pos < SERVO_POS_MIN){
+                Lincoln_Auto.shadow_servo_position = SERVO_POS_MIN;
+            }
+            else if(tmp_servo_pos > SERVO_POS_MAX){
+                Lincoln_Auto.shadow_servo_position = SERVO_POS_MAX;
+            }
+            else{
+                Lincoln_Auto.shadow_servo_position = tmp_servo_pos;
+            }
+
 
             Message_TX_L  = (Message_RX_L & 0xffff0000) | (int) Lincoln_Auto.motor_speed_for_Jetson;
             Message_TX_H  = ((Uint32) Lincoln_Auto.gimbal_position) << 16 | Lincoln_Auto.battery_voltage_uint;
