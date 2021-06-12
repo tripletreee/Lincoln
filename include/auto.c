@@ -4,6 +4,8 @@ void Init_Auto(AUTO_Handle auto_handle){
 
     AUTO_Obj *auto_obj = (AUTO_Obj *) auto_handle;
 
+    auto_obj->auto_mode = 0;
+
     auto_obj->command_motor_speed = 0;                      // motor speed command: [0,1000]
     auto_obj->command_servo_position = SERVO_POS_DEF;
     auto_obj->command_gimbal_position = GIMBAL_POS_DEF;

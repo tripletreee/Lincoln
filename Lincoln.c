@@ -28,15 +28,30 @@ int count_init = 0;
 struct ECAN_REGS ECanaShadow;
 struct ECAN_REGS ECanaShadow_post;
 
-Uint32 Message_RX_Count = 0;
-Uint32 Message_TX_Count = 0;
-Uint32 Message_RX_L = 0, Message_RX_H = 0;
-Uint32 Message_TX_L = 0, Message_TX_H = 0;
-Uint16 Message_RX_Index = 0;
+Uint32 MessageTX2_RX_Count = 0;
+Uint32 MessageTX2_TX_Count = 0;
+Uint32 MessageTX2_RX_L = 0, MessageTX2_RX_H = 0;
+Uint32 MessageTX2_TX_L = 0, MessageTX2_TX_H = 0;
+Uint16 MessageTX2_RX_Index = 0;
+
+Uint32 MessageRC_RX_Count = 0;
+Uint32 MessageRC_TX_Count = 0;
+Uint32 MessageRC_RX_L = 0, MessageRC_RX_H = 0;
+Uint32 MessageRC_TX_L = 0, MessageRC_TX_H = 0;
+Uint16 MessageRC_RX_Index = 0;
 
 int LED_Gimbal_Counter = 0;
 int LED_Motor_Counter = 0;
 int LED_CANBus_Counter = 0;
+int LED_Brake_Counter = 0;
+
+float tmp_motor_speed = 0.0f;
+float tmp_servo_pos = 0.0f;
+float tmp_gimbal_pos = 0.0f;
+Uint16 tmp_auto_mode = 0;
+
+int32 command_motor_speed = 0;
+int32 command_motor_speed_pre = 0;
 
 // system state machine
 // 0: Initial
@@ -70,10 +85,31 @@ __interrupt void adc_isr(void)
     //
 
     LED_Motor_Counter++;
+    LED_Brake_Counter++;
 
-    if(LED_Motor_Counter>5000){
+    if(LED_Motor_Counter>2500){
         GpioDataRegs.GPBTOGGLE.bit.GPIO57 = 1;
         LED_Motor_Counter = 0;
+    }
+
+    if(LED_Brake_Counter>1000){
+
+        command_motor_speed = Lincoln_Auto.command_motor_speed;
+
+        MessageRC_TX_L = 0x00000000;
+
+        // If the car is braking, stopping, or going backward
+        // Turn on the brake light
+        if(command_motor_speed < command_motor_speed_pre || command_motor_speed<=0){
+            MessageRC_TX_H = 0x00000001;
+        }
+        else{
+            MessageRC_TX_H = 0x00000000;
+        }
+        can_SendMailBox(1, MessageRC_TX_L, MessageRC_TX_H); // send through mailbox1 to CANID 0x04
+        command_motor_speed_pre = command_motor_speed;
+        MessageRC_TX_Count++;
+        LED_Brake_Counter = 0;
     }
 
     if(Lincoln_Auto.command_motor_speed > 0){
@@ -95,9 +131,10 @@ __interrupt void ecan0_isr(void)
     ECanaShadow = ECanaRegs;
 
     if(ECanaShadow.CANGIF0.bit.GMIF0 == 1){
-        ECanaShadow.CANTA.all = 0;
-        ECanaShadow.CANTA.bit.TA0 = 1;       // Clear TA0
-        ECanaRegs.CANTA.all = ECanaShadow.CANTA.all;
+//        ECanaShadow.CANTA.all = 0;
+//        ECanaShadow.CANTA.bit.TA0 = 1;       // Clear TA0
+//        ECanaShadow.CANTA.bit.TA1 = 1;       // Clear TA0
+//        ECanaRegs.CANTA.all = ECanaShadow.CANTA.all;
 
 
         // mailbox interrupt
@@ -108,26 +145,51 @@ __interrupt void ecan0_isr(void)
             ECanaRegs.CANTA.all = ECanaShadow.CANTA.all;
 
         }
+        else if(ECanaShadow.CANGIF0.bit.MIV0 == 1){
+            // if it is TX (mailbox 1) interrupt
+            ECanaShadow.CANTA.all = 0;
+            ECanaShadow.CANTA.bit.TA1 = 1;       // Clear TA1
+            ECanaRegs.CANTA.all = ECanaShadow.CANTA.all;
+
+        }
         else if(ECanaShadow.CANGIF0.bit.MIV0 == 16){
 
             // if it is RX (mailbox 16) interrupt
-            can_ReadMailBox(16, &Message_RX_L, &Message_RX_H);
+            // mailbox 16 is mainly used for receiving TX2 commands
+            can_ReadMailBox(16, &MessageTX2_RX_L, &MessageTX2_RX_H);
 
-            Message_RX_Index = Message_RX_L >> 16;
+            MessageTX2_RX_Index = MessageTX2_RX_L >> 16;
 
+            if(Lincoln_Auto.auto_mode == 1){
+                // if the vehicle is in autonomous mode
 
-            int16 tmp_motor_speed = Message_RX_L & 0x0000ffff;
-            if(tmp_motor_speed < MOTOR_SPEED_MIN){
-                Lincoln_Auto.shadow_motor_speed = MOTOR_SPEED_MIN;
+                tmp_motor_speed = MessageTX2_RX_L & 0x0000ffff;
+
+                if(tmp_motor_speed < MOTOR_SPEED_MIN){
+                    Lincoln_Auto.shadow_motor_speed = MOTOR_SPEED_MIN;
+                }
+                else if(tmp_motor_speed > MOTOR_SPEED_MAX){
+                    Lincoln_Auto.shadow_motor_speed = MOTOR_SPEED_MAX;
+                }
+                else{
+                    Lincoln_Auto.shadow_motor_speed = tmp_motor_speed;
+                }
+
+                tmp_servo_pos = MessageTX2_RX_H & 0x0000ffff;
+
+                if(tmp_servo_pos < SERVO_POS_MIN){
+                    Lincoln_Auto.shadow_servo_position = SERVO_POS_MIN;
+                }
+                else if(tmp_servo_pos > SERVO_POS_MAX){
+                    Lincoln_Auto.shadow_servo_position = SERVO_POS_MAX;
+                }
+                else{
+                    Lincoln_Auto.shadow_servo_position = tmp_servo_pos;
+                }
             }
-            else if(tmp_motor_speed > MOTOR_SPEED_MAX){
-                Lincoln_Auto.shadow_motor_speed = MOTOR_SPEED_MAX;
-            }
-            else{
-                Lincoln_Auto.shadow_motor_speed = tmp_motor_speed;
-            }
 
-            int32 tmp_gimbal_pos = Message_RX_H >> 16;
+            tmp_gimbal_pos = MessageTX2_RX_H >> 16;
+
             if(tmp_gimbal_pos < GIMBAL_POS_MIN){
                 Lincoln_Auto.shadow_gimbal_position = GIMBAL_POS_MIN;
             }
@@ -138,23 +200,10 @@ __interrupt void ecan0_isr(void)
                 Lincoln_Auto.shadow_gimbal_position = tmp_gimbal_pos;
             }
 
+            MessageTX2_TX_L  = (MessageTX2_RX_L & 0xffff0000) | (int) Lincoln_Auto.motor_speed_for_Jetson;
+            MessageTX2_TX_H  = ((Uint32) Lincoln_Auto.gimbal_position) << 16 | Lincoln_Auto.battery_voltage_uint;
 
-            int32 tmp_servo_pos = Message_RX_H & 0x0000ffff;
-            if(tmp_servo_pos < SERVO_POS_MIN){
-                Lincoln_Auto.shadow_servo_position = SERVO_POS_MIN;
-            }
-            else if(tmp_servo_pos > SERVO_POS_MAX){
-                Lincoln_Auto.shadow_servo_position = SERVO_POS_MAX;
-            }
-            else{
-                Lincoln_Auto.shadow_servo_position = tmp_servo_pos;
-            }
-
-
-            Message_TX_L  = (Message_RX_L & 0xffff0000) | (int) Lincoln_Auto.motor_speed_for_Jetson;
-            Message_TX_H  = ((Uint32) Lincoln_Auto.gimbal_position) << 16 | Lincoln_Auto.battery_voltage_uint;
-
-            Message_RX_Count++;
+            MessageTX2_RX_Count++;
             Lincoln_Auto.motor_speed_for_Jetson = 0;
 
             // clear (RMP) Received-Message-Pending Register
@@ -162,7 +211,54 @@ __interrupt void ecan0_isr(void)
             ECanaShadow.CANRMP.bit.RMP16 = 1;
             ECanaRegs.CANRMP.all = ECanaShadow.CANRMP.all;
 
-            can_SendMailBox(0, Message_TX_L, Message_TX_H); // send mailbox0
+            can_SendMailBox(0, MessageTX2_TX_L, MessageTX2_TX_H); // send through mailbox0 to CANID 0x01
+        }
+
+        else if(ECanaShadow.CANGIF0.bit.MIV0 == 17){
+
+            // if it is RX (mailbox 17) interrupt from RC receiver
+            can_ReadMailBox(17, &MessageRC_RX_L, &MessageRC_RX_H);
+
+            tmp_auto_mode = MessageRC_RX_L >> 16;
+
+            if(tmp_auto_mode > 2500){
+                Lincoln_Auto.auto_mode = 0;
+            }
+            else{
+                Lincoln_Auto.auto_mode = 1;
+            }
+
+            if(Lincoln_Auto.auto_mode == 0){
+                tmp_motor_speed = MessageRC_RX_L & 0x0000ffff;
+                tmp_motor_speed = (2950 - tmp_motor_speed)*0.5;
+                if(abs(tmp_motor_speed)<20){
+                    tmp_motor_speed = 0;
+                }
+
+                if(tmp_motor_speed > MOTOR_SPEED_MIN && tmp_motor_speed < MOTOR_SPEED_MAX){
+                    Lincoln_Auto.shadow_motor_speed = (int32) tmp_motor_speed;
+                }
+
+                tmp_servo_pos = MessageRC_RX_H & 0x0000ffff;
+                tmp_servo_pos = SERVO_POS_DEF + (2926 - (float)tmp_servo_pos)*11.957; //   *5500/460;
+
+                if(tmp_servo_pos < SERVO_POS_MIN){
+                    Lincoln_Auto.shadow_servo_position = SERVO_POS_MIN;
+                }
+                else if(tmp_servo_pos > SERVO_POS_MAX){
+                    Lincoln_Auto.shadow_servo_position = SERVO_POS_MAX;
+                }
+                else{
+                    Lincoln_Auto.shadow_servo_position = (int32) tmp_servo_pos;
+                }
+            }
+
+            MessageRC_RX_Count++;
+
+            // clear (RMP) Received-Message-Pending Register
+            ECanaShadow.CANRMP.all = 0;
+            ECanaShadow.CANRMP.bit.RMP17 = 1;
+            ECanaRegs.CANRMP.all = ECanaShadow.CANRMP.all;
         }
     }
     else{

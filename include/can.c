@@ -22,6 +22,16 @@ void Init_eCANs(void){
     ECanaMboxes.MBOX0.MSGID.bit.EXTMSGID_L = 0;
     
     //
+    // Set mailbox1's ID=0x04, TX
+    //
+    ECanaMboxes.MBOX1.MSGID.bit.IDE = 0;   // Identifier extension bit.
+    ECanaMboxes.MBOX1.MSGID.bit.AME = 0;   // Acceptance mask enable bit.
+    ECanaMboxes.MBOX1.MSGID.bit.AAM = 0;   // Auto answer mode bit.
+    ECanaMboxes.MBOX1.MSGID.bit.STDMSGID = 0x04;
+    ECanaMboxes.MBOX1.MSGID.bit.EXTMSGID_H = 0;
+    ECanaMboxes.MBOX1.MSGID.bit.EXTMSGID_L = 0;
+
+    //
     // Set mailbox16's ID=0x02, RX
     // 
     ECanaMboxes.MBOX16.MSGID.bit.IDE = 0;   // Identifier extension bit.
@@ -32,11 +42,23 @@ void Init_eCANs(void){
     ECanaMboxes.MBOX16.MSGID.bit.EXTMSGID_L = 0;
 
     //
-    // Configure Mailbox 0 as Tx, 16 as Rx
+    // Set mailbox17's ID=0x03, RX
+    //
+    ECanaMboxes.MBOX17.MSGID.bit.IDE = 0;   // Identifier extension bit.
+    ECanaMboxes.MBOX17.MSGID.bit.AME = 0;   // Acceptance mask enable bit.
+    ECanaMboxes.MBOX17.MSGID.bit.AAM = 0;   // Auto answer mode bit.
+    ECanaMboxes.MBOX17.MSGID.bit.STDMSGID = 0x03;
+    ECanaMboxes.MBOX17.MSGID.bit.EXTMSGID_H = 0;
+    ECanaMboxes.MBOX17.MSGID.bit.EXTMSGID_L = 0;
+
+    //
+    // Configure Mailbox 0, 1 as Tx. 16, 17 as Rx
     //
     ECanaShadow.CANMD.all = ECanaRegs.CANMD.all;
     ECanaShadow.CANMD.bit.MD0 = 0;
+    ECanaShadow.CANMD.bit.MD1 = 0;
     ECanaShadow.CANMD.bit.MD16 = 1;
+    ECanaShadow.CANMD.bit.MD17 = 1;
     ECanaRegs.CANMD.all = ECanaShadow.CANMD.all;
 
     // Reset all the TRS bits
@@ -48,7 +70,9 @@ void Init_eCANs(void){
     //
     ECanaShadow.CANME.all = ECanaRegs.CANME.all;
     ECanaShadow.CANME.bit.ME0 = 1;  // Enable mailbox 0
+    ECanaShadow.CANME.bit.ME1 = 1;  // Enable mailbox 1
     ECanaShadow.CANME.bit.ME16 = 1; // Enable mailbox 16
+    ECanaShadow.CANME.bit.ME17 = 1; // Enable mailbox 17
     ECanaRegs.CANME.all = ECanaShadow.CANME.all;
 
     ECanaShadow.CANMC.all = ECanaRegs.CANMC.all;
@@ -65,7 +89,9 @@ void Init_eCANs(void){
 
     ECanaShadow.CANMIM.all  = 0x00000000;   // Mailbox Interrupt Mask
 //    ECanaShadow.CANMIM.bit.MIM0 = 1;    // Unmask mailbox 0 interrupt
+//    ECanaShadow.CANMIM.bit.MIM1 = 1;    // Unmask mailbox 1 interrupt
     ECanaShadow.CANMIM.bit.MIM16 = 1;   // Unmask mailbox 16 interrupt
+    ECanaShadow.CANMIM.bit.MIM17 = 1;   // Unmask mailbox 17 interrupt
     ECanaRegs.CANMIM.all = ECanaShadow.CANMIM.all;
 
     ECanaShadow.CANGIM.all = 0; // Global interrupt mask
@@ -78,13 +104,18 @@ void Init_eCANs(void){
     // Specify that 8 bytes will be sent/received
     //
     ECanaMboxes.MBOX0.MSGCTRL.bit.DLC = 8;
+    ECanaMboxes.MBOX1.MSGCTRL.bit.DLC = 8;
     ECanaMboxes.MBOX16.MSGCTRL.bit.DLC = 8;
+    ECanaMboxes.MBOX17.MSGCTRL.bit.DLC = 8;
 
     //
     // Write to the mailbox RAM field of MBOX0 - 15
     //
-    ECanaMboxes.MBOX0.MDL.all = 0x12345678;
-    ECanaMboxes.MBOX0.MDH.all = 0x12345678;
+    ECanaMboxes.MBOX0.MDL.all = 0x00000000;//0x12345678;
+    ECanaMboxes.MBOX0.MDH.all = 0x00000000;//0x12345678;
+
+    ECanaMboxes.MBOX1.MDL.all = 0x12345678;
+    ECanaMboxes.MBOX1.MDH.all = 0x12345678;
 }
 
 void can_ReadMailBox(int16 MBXnbr, Uint32 *MDL, Uint32 *MDH){
@@ -121,7 +152,12 @@ void can_SendMailBox(int16 MBXnbr, Uint32 MDL, Uint32 MDH){
 
 
     ECanaShadow.CANTRS.all = 0;
-    ECanaShadow.CANTRS.bit.TRS0 = 1;     // Set Transmit Request Set (TRS) register for mailbox 0
+    if(MBXnbr==0){
+        ECanaShadow.CANTRS.bit.TRS0 = 1;     // Set Transmit Request Set (TRS) register for mailbox 0
+    }
+    else if(MBXnbr==1){
+        ECanaShadow.CANTRS.bit.TRS1 = 1;     // Set Transmit Request Set (TRS) register for mailbox 1
+    }
     ECanaRegs.CANTRS.all = ECanaShadow.CANTRS.all;
 
 

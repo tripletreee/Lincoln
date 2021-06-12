@@ -19,9 +19,19 @@ expAdd ("Lincoln_Auto.gimbal_current_pre");
 
 expAdd ("Lincoln_Auto.battery_voltage_f");
 
-expAdd ("Message_TX_L");
-expAdd ("Message_TX_H");
-expAdd ("Message_RX_L");
-expAdd ("Message_RX_H");
-expAdd ("Message_RX_Index");
-expAdd ("Message_RX_Count");
+expAdd ("MessageRC_TX_L");
+expAdd ("MessageRC_TX_H");
+expAdd ("MessageRC_RX_L");
+expAdd ("MessageRC_RX_H");
+expAdd ("MessageRC_RX_Index");
+expAdd ("MessageRC_TX_Count");
+expAdd ("MessageRC_RX_Count");
+
+
+expAdd ("MessageTX2_TX_L");
+expAdd ("MessageTX2_TX_H");
+expAdd ("MessageTX2_RX_L");
+expAdd ("MessageTX2_RX_H");
+expAdd ("MessageTX2_RX_Index");
+expAdd ("MessageTX2_RX_Count");
+expAdd ("MessageTX2_TX_Count");

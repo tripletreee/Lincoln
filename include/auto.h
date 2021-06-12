@@ -8,7 +8,7 @@
 #define GIMBAL_POS_MAX 3480
 #define GIMBAL_POS_DEF (GIMBAL_POS_MIN+GIMBAL_POS_MAX)/2
 
-#define SERVO_POS_MIN  12000                // servo angle command: [12000,22500]
+#define SERVO_POS_MIN  11500                // servo angle command: [12000,22500]
 #define SERVO_POS_MAX  22500
 #define SERVO_POS_DEF  SERVO_POS_MIN/2+SERVO_POS_MAX/2
 
@@ -17,6 +17,7 @@
 
 typedef struct _AUTO_Obj_
 {
+    int32 auto_mode;                        // Vehicle mode; 0: RC mode; 1: autonomous mode;
     int32 command_motor_speed;              // Motor speed command: [0,1000]
     int32 command_servo_position;           // Servo angle command: [12000,22500]
     int32 command_gimbal_position;          // Gimbal angle command: [3480,1820]
