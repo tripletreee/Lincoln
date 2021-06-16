@@ -200,8 +200,16 @@ __interrupt void ecan0_isr(void)
                 Lincoln_Auto.shadow_gimbal_position = tmp_gimbal_pos;
             }
 
-            MessageTX2_TX_L  = (MessageTX2_RX_L & 0xffff0000) | (int) Lincoln_Auto.motor_speed_for_Jetson;
-            MessageTX2_TX_H  = ((Uint32) Lincoln_Auto.gimbal_position) << 16 | Lincoln_Auto.battery_voltage_uint;
+            MessageTX2_TX_L  = (MessageTX2_RX_L & 0xffff0000) | (((int16) Lincoln_Auto.motor_speed_for_Jetson) & 0x0000ffff);
+            //MessageTX2_TX_L |= _tmp_int_speed & 0x0000ffff;
+
+            if(Lincoln_Auto.auto_mode == 1){    // If it is in autonomous mode, return gimbal position
+                MessageTX2_TX_H  = ((Uint32) Lincoln_Auto.gimbal_position) << 16 | Lincoln_Auto.battery_voltage_uint;
+            }
+            else{   // If it is in manual RC mode, return servo position
+                MessageTX2_TX_H  = ((Uint32) Lincoln_Auto.command_servo_position) << 16 | Lincoln_Auto.battery_voltage_uint;
+            }
+
 
             MessageTX2_RX_Count++;
             Lincoln_Auto.motor_speed_for_Jetson = 0;

@@ -4,12 +4,12 @@
 #include "pid.h"
 #include "pwm.h"
 
-#define GIMBAL_POS_MIN 1860                 // gimbal angle command: [3480,1860]
-#define GIMBAL_POS_MAX 3480
+#define GIMBAL_POS_MIN 1880                 // gimbal angle command: [3480,1860]
+#define GIMBAL_POS_MAX 3500
 #define GIMBAL_POS_DEF (GIMBAL_POS_MIN+GIMBAL_POS_MAX)/2
 
 #define SERVO_POS_MIN  11500                // servo angle command: [12000,22500]
-#define SERVO_POS_MAX  22500
+#define SERVO_POS_MAX  23500
 #define SERVO_POS_DEF  SERVO_POS_MIN/2+SERVO_POS_MAX/2
 
 #define MOTOR_SPEED_MIN -500
