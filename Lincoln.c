@@ -40,9 +40,9 @@ Uint32 MessageRC_RX_L = 0, MessageRC_RX_H = 0;
 Uint32 MessageRC_TX_L = 0, MessageRC_TX_H = 0;
 Uint16 MessageRC_RX_Index = 0;
 
-int LED_Gimbal_Counter = 0;
 int LED_Motor_Counter = 0;
-int LED_CANBus_Counter = 0;
+int LED_CANBus_TX2_Counter = 0;
+int LED_CANBus_RC_Counter = 0;
 int LED_Brake_Counter = 0;
 
 float tmp_motor_speed = 0.0f;
@@ -88,7 +88,7 @@ __interrupt void adc_isr(void)
     LED_Brake_Counter++;
 
     if(LED_Motor_Counter>2500){
-        GpioDataRegs.GPBTOGGLE.bit.GPIO57 = 1;
+        GpioDataRegs.GPBTOGGLE.bit.GPIO58 = 1;
         LED_Motor_Counter = 0;
     }
 
@@ -212,6 +212,16 @@ __interrupt void ecan0_isr(void)
 
 
             MessageTX2_RX_Count++;
+
+            // Flash the LED3 for CAN Bus TX2
+            if(LED_CANBus_TX2_Counter > 5){
+                LED_CANBus_TX2_Counter = 0;
+                GpioDataRegs.GPBTOGGLE.bit.GPIO57 = 1;
+            }
+            else{
+                LED_CANBus_TX2_Counter++;
+            }
+
             Lincoln_Auto.motor_speed_for_Jetson = 0;
 
             // clear (RMP) Received-Message-Pending Register
@@ -263,6 +273,15 @@ __interrupt void ecan0_isr(void)
 
             MessageRC_RX_Count++;
 
+            // Flash the LED2 for CAN Bus RC module
+            if(LED_CANBus_RC_Counter > 5){
+                LED_CANBus_RC_Counter = 0;
+                GpioDataRegs.GPBTOGGLE.bit.GPIO56 = 1;
+            }
+            else{
+                LED_CANBus_RC_Counter++;
+            }
+
             // clear (RMP) Received-Message-Pending Register
             ECanaShadow.CANRMP.all = 0;
             ECanaShadow.CANRMP.bit.RMP17 = 1;
@@ -293,14 +312,7 @@ __interrupt void ecan0_isr(void)
 //        }
     }
 
-    // Flash the LED3 for CAN Bus
-    if(LED_CANBus_Counter > 5){
-        LED_CANBus_Counter = 0;
-        GpioDataRegs.GPBTOGGLE.bit.GPIO58 = 1;
-    }
-    else{
-        LED_CANBus_Counter++;
-    }
+
 
     ECanaRegs.CANGIF0.all = ECanaShadow.CANGIF0.all;
     ECanaShadow_post = ECanaRegs;
