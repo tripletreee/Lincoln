@@ -8,8 +8,8 @@
 #define GIMBAL_POS_MAX 3500
 #define GIMBAL_POS_DEF (GIMBAL_POS_MIN+GIMBAL_POS_MAX)/2
 
-#define SERVO_POS_MIN  11500                // servo angle command: [12000,22500]
-#define SERVO_POS_MAX  23500
+#define SERVO_POS_MIN  10500//11500                // servo angle command: [12000,22500]
+#define SERVO_POS_MAX  23500//23500
 #define SERVO_POS_DEF  SERVO_POS_MIN/2+SERVO_POS_MAX/2
 
 #define MOTOR_SPEED_MIN -500

@@ -1,6 +1,8 @@
 #ifndef F28069_ADC_H
 #define F28069_ADC_H
 
+#pragma CODE_SECTION(ADC_Get_Results, "Cla1Prog");
+
 #include "F2806x_Device.h"     // F2806x Headerfile Include File
 #include "F2806x_Examples.h"
 
