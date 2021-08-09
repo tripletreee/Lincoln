@@ -28,8 +28,14 @@ PWM4,5,6 are for gimble.
 PWMs are synced and PWM1 triggers ADC sampling at 10kHz.
 
 # CAN Bus Protocol
-CAN bus will give a 8-byte answer:
-index | motor_speed | gimbal_position | battery_voltage
-
-HOST should send a 8-byte command:
+Jetson should send DSP a 8-byte command:
 index | motor_speed | gimbal_position | servo_position
+
+DSP will give a 8-byte answer to Jetson:
+index | motor_speed | gimbal_position | servo_position
+
+STM32 sends a 8-byte command to DSP:
+auto_mode | motor_speed | 0x0000 | servo_position
+
+DSP answers STM32 with a 8-byte command to turn on brake light or not:
+0x00 | 0x00 | 0x00 | 0x01

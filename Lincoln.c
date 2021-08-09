@@ -71,6 +71,24 @@ void main(void)
 
     // Forever loop
     for(;;){
+
+        // Read DRV8305 fault pin
+        int _fault = GpioDataRegs.GPADAT.bit.GPIO28;
+
+        if(_fault==0){
+
+            // Disable the DRV8305 for gimbal
+            GpioDataRegs.GPBCLEAR.bit.GPIO50 = 1;
+
+            // Delay 10ms for sensor update
+            DELAY_US(10000);
+
+            // Enable the DRV8305 for gimbal
+            GpioDataRegs.GPBSET.bit.GPIO50 = 1;
+
+            // Delay 10ms for sensor update
+            DELAY_US(10000);
+        }
     }
 }
 
@@ -186,30 +204,32 @@ __interrupt void ecan0_isr(void)
                 else{
                     Lincoln_Auto.shadow_servo_position = tmp_servo_pos;
                 }
-            }
 
-            tmp_gimbal_pos = MessageTX2_RX_H >> 16;
+                tmp_gimbal_pos = MessageTX2_RX_H >> 16;
 
-            if(tmp_gimbal_pos < GIMBAL_POS_MIN){
-                Lincoln_Auto.shadow_gimbal_position = GIMBAL_POS_MIN;
-            }
-            else if(tmp_gimbal_pos > GIMBAL_POS_MAX){
-                Lincoln_Auto.shadow_gimbal_position = GIMBAL_POS_MAX;
-            }
-            else{
-                Lincoln_Auto.shadow_gimbal_position = tmp_gimbal_pos;
+                if(tmp_gimbal_pos < GIMBAL_POS_MIN){
+                    Lincoln_Auto.shadow_gimbal_position = GIMBAL_POS_MIN;
+                }
+                else if(tmp_gimbal_pos > GIMBAL_POS_MAX){
+                    Lincoln_Auto.shadow_gimbal_position = GIMBAL_POS_MAX;
+                }
+                else{
+                    Lincoln_Auto.shadow_gimbal_position = tmp_gimbal_pos;
+                }
             }
 
             MessageTX2_TX_L  = (MessageTX2_RX_L & 0xffff0000) | (((int16) Lincoln_Auto.motor_speed_for_Jetson) & 0x0000ffff);
-            //MessageTX2_TX_L |= _tmp_int_speed & 0x0000ffff;
 
+            MessageTX2_TX_H  = ((Uint32) Lincoln_Auto.gimbal_position) << 16 | Lincoln_Auto.command_servo_position;
+
+            /*
             if(Lincoln_Auto.auto_mode == 1){    // If it is in autonomous mode, return gimbal position
                 MessageTX2_TX_H  = ((Uint32) Lincoln_Auto.gimbal_position) << 16 | Lincoln_Auto.battery_voltage_uint;
             }
             else{   // If it is in manual RC mode, return servo position
                 MessageTX2_TX_H  = ((Uint32) Lincoln_Auto.command_servo_position) << 16 | Lincoln_Auto.battery_voltage_uint;
             }
-
+            */
 
             MessageTX2_RX_Count++;
 
@@ -269,6 +289,8 @@ __interrupt void ecan0_isr(void)
                 else{
                     Lincoln_Auto.shadow_servo_position = (int32) tmp_servo_pos;
                 }
+
+                Lincoln_Auto.shadow_gimbal_position = GIMBAL_POS_DEF;
             }
 
             MessageRC_RX_Count++;

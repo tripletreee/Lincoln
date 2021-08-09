@@ -57,6 +57,10 @@ void Init_GPIO(void)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO26 = 0;   // Synch to SYSCLKOUT GPIO26 (CAP3)
     GpioCtrlRegs.GPAMUX2.bit.GPIO26 = 1;    // Configure GPIO26 as CAP3
 
+    GpioCtrlRegs.GPAPUD.bit.GPIO28 = 0;     // Enable pull-up on GPIO28 (Fault DRV8305)
+    GpioCtrlRegs.GPAMUX2.bit.GPIO28 = 0;    // Configure GPIO28 as GPIO28
+    GpioCtrlRegs.GPADIR.bit.GPIO28 = 0;     // GPIO28 = input
+
     GpioCtrlRegs.GPBMUX2.bit.GPIO50 = 0;    // Configure GPIO50 as GPIO
     GpioCtrlRegs.GPBDIR.bit.GPIO50 = 1;     // GPIO50 = output
     GpioDataRegs.GPBCLEAR.bit.GPIO50 = 1;   // output set LOW (enable drv8305)
