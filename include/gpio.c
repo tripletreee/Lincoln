@@ -63,7 +63,7 @@ void Init_GPIO(void)
 
     GpioCtrlRegs.GPBMUX2.bit.GPIO50 = 0;    // Configure GPIO50 as GPIO
     GpioCtrlRegs.GPBDIR.bit.GPIO50 = 1;     // GPIO50 = output
-    GpioDataRegs.GPBCLEAR.bit.GPIO50 = 1;   // output set LOW (enable drv8305)
+    GpioDataRegs.GPBCLEAR.bit.GPIO50 = 1;   // output set LOW (disable drv8305)
 
     GpioCtrlRegs.GPAPUD.bit.GPIO30 = 0;     // Enable pull-up for GPIO30 (CANRXA)
     GpioCtrlRegs.GPAQSEL2.bit.GPIO30 = 3;   // Asynch qual for GPIO30 (CANRXA)
